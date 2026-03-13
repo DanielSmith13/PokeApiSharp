@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace PokeApiSharp.PokeApi;
+﻿namespace PokeApiSharp.PokeApi;
 
 public record NamedApiResourceList<T>(
     int Count,

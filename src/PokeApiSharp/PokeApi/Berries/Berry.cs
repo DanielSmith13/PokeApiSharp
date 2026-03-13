@@ -1,7 +1,6 @@
-using System.Collections.Generic;
 using PokeApiSharp.Attributes;
 using PokeApiSharp.PokeApi.Items;
-using PokeApiSharp.PokeApi.Pokemon;
+using Type = PokeApiSharp.PokeApi.Pokemon.Type;
 
 namespace PokeApiSharp.PokeApi.Berries;
 

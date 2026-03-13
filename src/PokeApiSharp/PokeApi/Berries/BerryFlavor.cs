@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using PokeApiSharp.Attributes;
 using PokeApiSharp.PokeApi.Contests;
 using PokeApiSharp.PokeApi.Utility.Common;

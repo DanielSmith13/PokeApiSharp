@@ -1,8 +1,7 @@
-using System.Collections.Generic;
 using PokeApiSharp.Attributes;
 using PokeApiSharp.PokeApi.Encounters;
-using PokeApiSharp.PokeApi.Games;
 using PokeApiSharp.PokeApi.Utility.Common;
+using Version = PokeApiSharp.PokeApi.Games.Version;
 
 namespace PokeApiSharp.PokeApi.Locations;
 

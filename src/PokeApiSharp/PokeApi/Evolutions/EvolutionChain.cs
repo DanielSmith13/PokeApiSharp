@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using PokeApiSharp.Attributes;
 using PokeApiSharp.PokeApi.Items;
 using PokeApiSharp.PokeApi.Locations;

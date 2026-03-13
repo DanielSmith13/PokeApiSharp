@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using PokeApiSharp.PokeApi.Encounters;
 
 namespace PokeApiSharp.PokeApi.Utility.Common;

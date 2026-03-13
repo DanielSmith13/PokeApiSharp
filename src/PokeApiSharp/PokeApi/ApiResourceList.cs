@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace PokeApiSharp.PokeApi;
 
 public record ApiResourceList<T>(

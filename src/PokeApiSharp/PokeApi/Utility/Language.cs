@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using PokeApiSharp.PokeApi.Utility.Common;
 
 namespace PokeApiSharp.PokeApi.Utility;
