@@ -7,4 +7,26 @@
         <RootNamespace>PokeApiSharp</RootNamespace>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <PackageId>PokeApiSharp</PackageId>
+        <Version>0.0.1</Version>
+        <Authors>Daniel Smith</Authors>
+        <Company>DLRS Software</Company>
+        <Description>Lightweight .NET client for the PokéAPI.</Description>
+        <PackageTags>pokemon;pokeapi;http;client</PackageTags>
+        <PackageProjectUrl>https://github.com/DanielSmith13/PokeApiSharp</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/DanielSmith13/PokeApiSharp.git</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+        <IncludeSymbols>false</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="10.0.5" />
+    </ItemGroup>
+
 </Project>
