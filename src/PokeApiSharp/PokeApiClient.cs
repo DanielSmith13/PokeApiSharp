@@ -1,5 +1,7 @@
 ﻿using System.Text.Json;
+using Microsoft.Extensions.Caching.Memory;
 using PokeApiSharp.Attributes;
+using PokeApiSharp.Cache;
 using PokeApiSharp.PokeApi;
 
 namespace PokeApiSharp;
@@ -7,6 +9,11 @@ namespace PokeApiSharp;
 public class PokeApiClient : IPokeApiClient
 {
     private readonly HttpClient _httpClient;
+    private bool _ownsHttpClient;
+    private readonly PokeApiCache _cache;
+    private bool _ownsCache;
+    private const string BaseAddress = "https://pokeapi.co/api/v2/";
+
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
@@ -15,80 +22,110 @@ public class PokeApiClient : IPokeApiClient
 
     private const int MaxConcurrency = 8;
 
-    public PokeApiClient(HttpClient httpClient)
+    public PokeApiClient(HttpClient? httpClient = null, IMemoryCache? cache = null)
     {
-        if(httpClient.BaseAddress == null)
-            httpClient.BaseAddress = new Uri("https://pokeapi.co/api/v2/");
+        httpClient ??= InitialiseHttpClient(httpClient);
+        if (httpClient.BaseAddress == null)
+            httpClient.BaseAddress = new Uri(BaseAddress);
         _httpClient = httpClient;
+        _cache = InitialiseCache(cache);
     }
 
-    public async Task<T?> GetAsync<T>(string name, CancellationToken cancellationToken = default)
-        => await FetchResourceAsync<T>($"{GetResourcePath<T>()}/{name.Trim().ToLowerInvariant()}", cancellationToken);
+    /// <inheritdoc/>
+    public async Task<TResource?> GetAsync<TResource>(string name, CancellationToken cancellationToken = default)
+        => await GetResourceAsync<TResource>(
+            $"{GetResourcePath<TResource>()}/{name.Trim().ToLowerInvariant()}",
+            cancellationToken);
 
-    
-    public async Task<T?> GetAsync<T>(int id, CancellationToken cancellationToken = default)
-        => await GetAsync<T>(id.ToString(), cancellationToken);
+    /// <inheritdoc/>
+    public async Task<TResource?> GetAsync<TResource>(int id, CancellationToken cancellationToken = default)
+        => await GetAsync<TResource>(id.ToString(), cancellationToken);
 
-    public async Task<T?> GetAsync<T>(ApiResource<T> resource, CancellationToken cancellationToken = default)
-        => await FetchResourceAsync<T>(resource.Url, cancellationToken);
-    
-    public async Task<NamedApiResourceList<T>> ListAsync<T>(int? limit = 20, int? offset = 0, CancellationToken cancellationToken = default)
-        => await FetchResourceListAsync<T>($"{GetResourcePath<T>()}?limit={limit}&offset={offset}", cancellationToken);
-
-    public async Task<IEnumerable<T?>> GetAsync<T>(IEnumerable<ApiResource<T>> resources,
+    /// <inheritdoc/>
+    public async Task<TResource?> GetAsync<TResource>(ApiResource<TResource> resource,
         CancellationToken cancellationToken = default)
-        => await FetchResourcesAsync<T?>(resources.Select(r => r.Url), cancellationToken);
+        => await GetResourceAsync<TResource>(resource.Url, cancellationToken);
 
-    public async Task<T?> GetAsync<T>(NamedApiResource<T> resource, CancellationToken cancellationToken = default)
-        => await FetchResourceAsync<T>(resource.Url, cancellationToken);
-
-    public async Task<IEnumerable<T?>> GetAsync<T>(IEnumerable<NamedApiResource<T>> resources,
+    /// <inheritdoc/>
+    public async Task<NamedApiResourceList<TResource>> ListAsync<TResource>(int? limit = 20, int? offset = 0,
         CancellationToken cancellationToken = default)
-        => await FetchResourcesAsync<T?>(resources.Select(r => r.Url), cancellationToken);
+        => await GetResourceAsync<NamedApiResourceList<TResource>>(
+               $"{GetResourcePath<TResource>()}?limit={limit}&offset={offset}",
+               cancellationToken) ??
+           new NamedApiResourceList<TResource>(0, null, null, new List<NamedApiResource<TResource>>());
 
-    public async Task<IEnumerable<T?>> GetAsync<T>(CancellationToken cancellationToken = default)
+    /// <inheritdoc/>
+    public async Task<IEnumerable<TResource?>> GetAsync<TResource>(IEnumerable<ApiResource<TResource>> resources,
+        CancellationToken cancellationToken = default)
+        => await FetchResourcesAsync<TResource?>(resources.Select(r => r.Url), cancellationToken);
+
+    /// <inheritdoc/>
+    public async Task<TResource?> GetAsync<TResource>(NamedApiResource<TResource> resource,
+        CancellationToken cancellationToken = default)
+        => await GetResourceAsync<TResource>(resource.Url, cancellationToken);
+
+    /// <inheritdoc/>
+    public async Task<IEnumerable<TResource?>> GetAsync<TResource>(IEnumerable<NamedApiResource<TResource>> resources,
+        CancellationToken cancellationToken = default)
+        => await FetchResourcesAsync<TResource?>(resources.Select(r => r.Url), cancellationToken);
+
+    /// <inheritdoc/>
+    public async Task<IEnumerable<TResource?>> GetAsync<TResource>(CancellationToken cancellationToken = default)
     {
-        var resources = new List<T?>();
-        await foreach (var resource in FetchAllResourcesAsync<T>(GetResourcePath<T>(), cancellationToken))
+        var resources = new List<TResource?>();
+        await foreach (var resource in FetchAllResourcesAsync<TResource>(GetResourcePath<TResource>(),
+                           cancellationToken))
             resources.Add(resource);
         return resources;
     }
+
+    /// <inheritdoc/>
+    public void ClearCache() => _cache.ClearCache();
+    
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        if (_ownsHttpClient)
+            _httpClient.Dispose();
+        if (_ownsCache)
+            _cache.Dispose();
+    }
+
+    private async Task<T?> GetResourceAsync<T>(string url, CancellationToken cancellationToken)
+        => await _cache.GetCachedResource<T>(url).Match<Task<T?>>(
+            resource => resource is not null
+                ? Task.FromResult<T?>(resource)
+                : Task.FromResult<T?>(default),
+            _ => FetchResourceAsync<T>(url, cancellationToken));
 
     private async Task<T?> FetchResourceAsync<T>(string url, CancellationToken cancellationToken)
     {
         using var response = await _httpClient.GetAsync(url, cancellationToken);
         response.EnsureSuccessStatusCode();
         await using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
-        return await JsonSerializer.DeserializeAsync<T>(contentStream, JsonOptions, cancellationToken);
+        var resource = await JsonSerializer.DeserializeAsync<T>(contentStream, JsonOptions, cancellationToken);
+        _cache.SetCachedResource(url, resource);
+        return resource;
     }
-    
-    private async Task<IEnumerable<T?>> FetchResourcesAsync<T>(IEnumerable<string> urls, CancellationToken cancellationToken)
+
+    private async Task<IEnumerable<T?>> FetchResourcesAsync<T>(IEnumerable<string> urls,
+        CancellationToken cancellationToken)
     {
-        var tasks = urls.Select(url => FetchResourceAsync<T>(url, cancellationToken));
+        var tasks = urls.Select(url => GetResourceAsync<T>(url, cancellationToken));
         return await Task.WhenAll(tasks);
-    }
-    
-    private async Task<NamedApiResourceList<T>> FetchResourceListAsync<T>(string url, CancellationToken cancellationToken)
-    {
-        using var response = await _httpClient.GetAsync(url, cancellationToken);
-        response.EnsureSuccessStatusCode();
-        await using var stream =
-            await response.Content.ReadAsStreamAsync(cancellationToken);
-        return await JsonSerializer.DeserializeAsync<NamedApiResourceList<T>>(
-            stream,
-            JsonOptions,
-            cancellationToken) ?? new NamedApiResourceList<T>(0, null, null, []);
     }
 
     private async IAsyncEnumerable<T?> FetchAllResourcesAsync<T>(
         string url,
-        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken)
+        [System.Runtime.CompilerServices.EnumeratorCancellation]
+        CancellationToken cancellationToken)
     {
         var nextUrl = url;
         var semaphore = new SemaphoreSlim(MaxConcurrency);
         while (nextUrl is not null)
         {
-            var resourceList = await FetchResourceListAsync<T>(nextUrl, cancellationToken);
+            var resourceList = await GetResourceAsync<NamedApiResourceList<T>>(nextUrl, cancellationToken);
+            if (resourceList is null) yield break;
             nextUrl = resourceList.Next;
 
             var urls = resourceList.Results.Select(r => r.Url).ToList();
@@ -98,7 +135,7 @@ public class PokeApiClient : IPokeApiClient
                 await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
                 try
                 {
-                    return await FetchResourceAsync<T>(u, cancellationToken).ConfigureAwait(false);
+                    return await GetResourceAsync<T>(u, cancellationToken).ConfigureAwait(false);
                 }
                 catch
                 {
@@ -116,11 +153,27 @@ public class PokeApiClient : IPokeApiClient
         }
     }
 
-    private static string GetResourcePath<T>()
+    private static string GetResourcePath<TResource>()
     {
-        var attribute = typeof(T).GetCustomAttributes(typeof(PokeApiResource), false);
-        return attribute.Length > 0 
-            ? ((PokeApiResource) attribute[0]).Path 
+        var attribute = typeof(TResource).GetCustomAttributes(typeof(PokeApiResource), false);
+        return attribute.Length > 0
+            ? ((PokeApiResource)attribute[0]).Path
             : throw new InvalidOperationException("Resource is not an API resource");
+    }
+    
+    private HttpClient InitialiseHttpClient(HttpClient? httpClient)
+    {
+        _ownsHttpClient = true;
+        return new HttpClient
+        {
+            BaseAddress = new Uri(BaseAddress),
+        };
+    }
+    
+    private PokeApiCache InitialiseCache(IMemoryCache? cache)
+    {
+        if (cache is not null) return new PokeApiCache(cache);
+        _ownsCache = true;
+        return new PokeApiCache(new MemoryCache(new MemoryCacheOptions()));
     }
 }

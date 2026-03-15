@@ -5,6 +5,7 @@ namespace Unit.Utils;
 public class CaptureHandler(HttpResponseMessage response) : HttpMessageHandler
 {
     public HttpRequestMessage? LastRequest { get; private set; }
+    public int RequestCount { get; private set; }
 
     protected override Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request,
@@ -12,6 +13,7 @@ public class CaptureHandler(HttpResponseMessage response) : HttpMessageHandler
     {
         try
         {
+            RequestCount++;
             LastRequest = request;
             var clone = new HttpResponseMessage(response.StatusCode)
             {
