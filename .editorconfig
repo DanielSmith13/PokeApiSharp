@@ -1,0 +1,4 @@
+root = true
+
+[src/PokeApiSharp/Models/**/*.cs]
+resharper_check_namespace_highlighting = none
