@@ -1,6 +1,4 @@
 ﻿using PokeApiSharp;
-using PokeApiSharp.PokeApi;
-using PokeApiSharp.PokeApi.Pokemon;
 using WireMock.Server;
 
 namespace Integration;

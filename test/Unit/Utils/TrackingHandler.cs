@@ -1,6 +1,6 @@
 namespace Unit.Utils;
 
-public class TrackingHandler() : HttpMessageHandler
+public class TrackingHandler : HttpMessageHandler
 {
     public bool WasDisposed { get; private set; }
 

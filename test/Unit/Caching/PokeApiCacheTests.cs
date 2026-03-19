@@ -1,5 +1,5 @@
 using Microsoft.Extensions.Caching.Memory;
-using PokeApiSharp.Cache;
+using PokeApiSharp.Caching;
 
 namespace Unit.Caching;
 
@@ -35,6 +35,6 @@ public class PokeApiCacheTests
     
             // Assert
             Assert.True(result.IsFailure);
-            Assert.Equal("Resource not found in cache.", result.Match(_ => null, f => f));
+            Assert.Equal("Resource not found in cache.", result.Match(_ => url, f => f));
         }
 }
