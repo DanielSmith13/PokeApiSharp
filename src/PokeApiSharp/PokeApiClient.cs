@@ -138,7 +138,7 @@ public class PokeApiClient : IPokeApiClient
         [System.Runtime.CompilerServices.EnumeratorCancellation]
         CancellationToken cancellationToken)
     {
-        var nextUrl = url;
+        var nextUrl = url + "?limit=100&offset=0";
         var semaphore = new SemaphoreSlim(MaxConcurrency);
         while (nextUrl is not null)
         {

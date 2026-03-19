@@ -16,7 +16,7 @@ public record BerryFlavour(
     int Id,
     string Name,
     IEnumerable<FlavourBerryMap> Berries,
-    NamedApiResource<Contest> ContestType,
+    NamedApiResource<ContestType> ContestType,
     IEnumerable<NameEntry> Names);
     
 /// <summary>

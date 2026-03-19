@@ -43,7 +43,7 @@ public record Move(
     int Priority,
     int Power,
     ContestComboSets ContestCombos,
-    NamedApiResource<Contest> ContestType,
+    NamedApiResource<ContestType> ContestType,
     ApiResource<ContestEffect> ContestEffect,
     NamedApiResource<MoveDamageClass> DamageClass,
     IEnumerable<VerboseEffect> EffectEntries,
