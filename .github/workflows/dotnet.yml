@@ -44,7 +44,9 @@ jobs:
     - name: Pack
       run: |
         if [ "${{ github.ref_type }}" == "tag" ]; then
+          # Remove 'v' prefix if it exists
           VERSION="${{ github.ref_name }}"
+          VERSION="${VERSION#v}"
         else
           VERSION="0.0.1-preview.${{ github.run_number }}"
         fi
