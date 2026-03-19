@@ -12,13 +12,10 @@ public class PokeApiCache(IMemoryCache cache) : IPokeApiCache
     /// <inheritdoc/>
     public Either<TResource, string> GetCachedResource<TResource>(string url)
     {
-        Console.WriteLine($"Attempting to retrieve resource from cache: {url}");
         if (!cache.TryGetValue(url, out TResource? resource))
         {
-            Console.WriteLine($"Resource not found in cache: {url}");
             return new Either<TResource, string>("Resource not found in cache.");
         }
-        Console.WriteLine($"Resource retrieved from cache: {url}");
         return resource != null
             ? new Either<TResource, string>(resource)
             : new Either<TResource, string>("Cached resource is null.");

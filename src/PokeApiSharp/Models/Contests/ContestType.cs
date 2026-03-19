@@ -12,7 +12,7 @@ namespace PokeApiSharp;
 /// <param name="BerryFlavour">The berry flavour that correlates with this contest type.</param>
 /// <param name="Names">The name of this contest type listed in different languages.</param>
 [PokeApiResource("contest-type")]
-public record Contest(
+public record ContestType(
     int Id,
     string Name,
     [property: JsonPropertyName("berry_flavor")]NamedApiResource<BerryFlavour> BerryFlavour,

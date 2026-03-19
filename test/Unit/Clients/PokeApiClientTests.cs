@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Text;
+using System.Text.Json;
 using Microsoft.Extensions.Caching.Memory;
 using PokeApiSharp;
 using Unit.Utils;
@@ -140,15 +141,15 @@ public class PokeApiClientTests
         {
             Content = new StringContent(ResourceJson, Encoding.UTF8, "application/json")
         };
-        
+
         var handler = new CaptureHandler(response);
         using var httpClient = new HttpClient(handler);
         httpClient.BaseAddress = new Uri("https://pokeapi.co/api/v2/");
 
         var sut = new PokeApiClient(httpClient);
-        
+
         var first = await sut.GetAsync<Pokemon>(263);
-        
+
         Assert.Equal(1, handler.RequestCount);
         Assert.NotNull(handler.LastRequest);
         Assert.Equal(GetExpectedUrl(263), handler.LastRequest.RequestUri);
@@ -156,15 +157,15 @@ public class PokeApiClientTests
         Assert.NotNull(first);
         Assert.Equal("zigzagoon", first.Name);
         Assert.Equal(263, first.Id);
-        
+
         var second = await sut.GetAsync<Pokemon>(263);
-        
+
         Assert.NotNull(second);
         Assert.Equal("zigzagoon", second.Name);
         Assert.Equal(263, second.Id);
         Assert.Equal(1, handler.RequestCount);
     }
-    
+
     [Fact]
     public async Task ClearCache_RemovesCachedItem_AndNextCallHitsHttp()
     {
@@ -179,19 +180,19 @@ public class PokeApiClientTests
 
         var memoryCache = new MemoryCache(new MemoryCacheOptions());
         var sut = new PokeApiClient(httpClient, memoryCache);
-        
+
         var first = await sut.GetAsync<Pokemon>(263);
         Assert.NotNull(first);
         Assert.Equal(1, handler.RequestCount);
-        
+
         sut.ClearCache();
-        
+
         var second = await sut.GetAsync<Pokemon>(263);
-        
+
         Assert.NotNull(second);
         Assert.Equal(2, handler.RequestCount);
     }
-    
+
     [Fact]
     public void Dispose_DoesNotDispose_ExternalHttpClient()
     {
@@ -207,7 +208,7 @@ public class PokeApiClientTests
         httpClient.Dispose();
         Assert.True(handler.WasDisposed);
     }
-    
+
     [Fact]
     public void Dispose_DoesNotDispose_ExternalMemoryCache()
     {
@@ -224,7 +225,7 @@ public class PokeApiClientTests
         httpClient.Dispose();
         memoryCache.Dispose();
     }
-    
+
     [Fact]
     public async Task GetAsync_Throws_OnNonSuccessStatus()
     {
@@ -236,14 +237,11 @@ public class PokeApiClientTests
 
         var sut = new PokeApiClient(httpClient);
 
-        await Assert.ThrowsAsync<HttpRequestException>(async () =>
-        {
-            await sut.GetAsync<Pokemon>(9999);
-        });
+        await Assert.ThrowsAsync<HttpRequestException>(async () => { await sut.GetAsync<Pokemon>(9999); });
 
         Assert.Equal(1, handler.RequestCount);
     }
-    
+
     [Fact]
     public async Task GetAsync_MultipleResources_ThrowsIfAnyFail()
     {
@@ -253,8 +251,8 @@ public class PokeApiClientTests
         };
         var notFoundResponse = new HttpResponseMessage(HttpStatusCode.NotFound);
 
-        var handler = new DelegatingHandler(request => request.RequestUri!.AbsoluteUri.EndsWith("/pokemon/1") 
-            ? okResponse 
+        var handler = new DelegatingHandler(request => request.RequestUri!.AbsoluteUri.EndsWith("/pokemon/1")
+            ? okResponse
             : notFoundResponse);
 
         using var httpClient = new HttpClient(handler);
@@ -262,36 +260,63 @@ public class PokeApiClientTests
 
         var sut = new PokeApiClient(httpClient);
 
-        var resources = new[] {
+        var resources = new[]
+        {
             new ApiResource<Pokemon>("pokemon/1"),
             new ApiResource<Pokemon>("pokemon/9999")
         };
 
-        await Assert.ThrowsAsync<HttpRequestException>(async () =>
-        {
-            await sut.GetAsync(resources);
-        });
+        await Assert.ThrowsAsync<HttpRequestException>(async () => { await sut.GetAsync(resources); });
     }
-    
+
     [Fact]
     public async Task FetchAllResourcesAsync_FollowsPages_AndFetchesEachResource()
     {
-        const string firstListJson = "{\"count\":2,\"next\":\"https://pokeapi.co/api/v2/pokemon?page=2\",\"previous\":null,\"results\":[{\"name\":\"a\",\"url\":\"https://pokeapi.co/api/v2/pokemon/1/\"}]}";
-        const string secondListJson = "{\"count\":2,\"next\":null,\"previous\":null,\"results\":[{\"name\":\"b\",\"url\":\"https://pokeapi.co/api/v2/pokemon/2/\"}]}";
+        var firstListJson = JsonSerializer.Serialize(
+            new NamedApiResourceList<Pokemon>(
+                2,
+                "https://pokeapi.co/api/v2/pokemon?limit=100&offset=100",
+                null,
+                [
+                    new NamedApiResource<Pokemon>("a", "https://pokeapi.co/api/v2/pokemon/1/"),
+                    new NamedApiResource<Pokemon>("b", "https://pokeapi.co/api/v2/pokemon/2/")
+                ]));
+        var secondListJson = JsonSerializer.Serialize(
+            new NamedApiResourceList<Pokemon>(
+                2,
+                null,
+                "https://pokeapi.co/api/v2/pokemon?limit=100&offset=0"
+                , [
+                    new NamedApiResource<Pokemon>("c", "https://pokeapi.co/api/v2/pokemon/3/"),
+                    new NamedApiResource<Pokemon>("d", "https://pokeapi.co/api/v2/pokemon/4/")
+                ]));
+        
         const string pokemon1Json = "{\"id\":1,\"name\":\"a\"}";
         const string pokemon2Json = "{\"id\":2,\"name\":\"b\"}";
+        const string pokemon3Json = "{\"id\":3,\"name\":\"c\"}";
+        const string pokemon4Json = "{\"id\":4,\"name\":\"d\"}";
 
         var handler = new DelegatingHandler(req =>
         {
             var uri = req.RequestUri!.ToString();
-            if (uri.EndsWith("pokemon") || uri.Contains("page=1"))
-                return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(firstListJson, Encoding.UTF8, "application/json") };
-            if (uri.Contains("page=2"))
-                return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(secondListJson, Encoding.UTF8, "application/json") };
+            if (uri.EndsWith("pokemon") || uri.Contains("offset=0"))
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                    { Content = new StringContent(firstListJson, Encoding.UTF8, "application/json") };
+            if (uri.Contains("offset=100"))
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                    { Content = new StringContent(secondListJson, Encoding.UTF8, "application/json") };
             if (uri.EndsWith("/pokemon/1/") || uri.EndsWith("/pokemon/1"))
-                return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(pokemon1Json, Encoding.UTF8, "application/json") };
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                    { Content = new StringContent(pokemon1Json, Encoding.UTF8, "application/json") };
             if (uri.EndsWith("/pokemon/2/") || uri.EndsWith("/pokemon/2"))
-                return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(pokemon2Json, Encoding.UTF8, "application/json") };
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                    { Content = new StringContent(pokemon2Json, Encoding.UTF8, "application/json") };
+            if (uri.EndsWith("/pokemon/3/") || uri.EndsWith("/pokemon/3"))
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                    { Content = new StringContent(pokemon3Json, Encoding.UTF8, "application/json") };
+            if (uri.EndsWith("/pokemon/4/") || uri.EndsWith("/pokemon/4"))
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                    { Content = new StringContent(pokemon4Json, Encoding.UTF8, "application/json") };
             return new HttpResponseMessage(HttpStatusCode.NotFound);
         });
 
@@ -302,11 +327,13 @@ public class PokeApiClientTests
         var all = await sut.GetAsync<Pokemon>();
 
         var list = all.ToList();
-        Assert.Equal(2, list.Count);
+        Assert.Equal(4, list.Count);
         Assert.Equal(1, list[0]?.Id);
         Assert.Equal(2, list[1]?.Id);
+        Assert.Equal(3, list[2]?.Id);
+        Assert.Equal(4, list[3]?.Id);
     }
-    
+
     [Fact]
     public async Task GetAsync_ThrowsOnInvalidJson()
     {
@@ -322,12 +349,9 @@ public class PokeApiClientTests
 
         var sut = new PokeApiClient(httpClient);
 
-        await Assert.ThrowsAsync<System.Text.Json.JsonException>(async () =>
-        {
-            await sut.GetAsync<Pokemon>(1);
-        });
+        await Assert.ThrowsAsync<System.Text.Json.JsonException>(async () => { await sut.GetAsync<Pokemon>(1); });
     }
-    
+
     [Fact]
     public async Task GetAsync_HonorsCancellationToken()
     {
@@ -344,12 +368,9 @@ public class PokeApiClientTests
         using var cts = new CancellationTokenSource();
         cts.CancelAfter(TimeSpan.FromMilliseconds(50));
 
-        await Assert.ThrowsAsync<TaskCanceledException>(async () =>
-        {
-            await sut.GetAsync<Pokemon>(1, cts.Token);
-        });
+        await Assert.ThrowsAsync<TaskCanceledException>(async () => { await sut.GetAsync<Pokemon>(1, cts.Token); });
     }
-    
+
     [Fact]
     public async Task GetAsync_Overloads_ApiResourceAndNamedApiResource()
     {
