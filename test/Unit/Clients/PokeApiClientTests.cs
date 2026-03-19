@@ -2,7 +2,6 @@
 using System.Text;
 using Microsoft.Extensions.Caching.Memory;
 using PokeApiSharp;
-using PokeApiSharp.PokeApi.Pokemon;
 using Unit.Utils;
 using DelegatingHandler = Unit.Utils.DelegatingHandler;
 
@@ -264,8 +263,8 @@ public class PokeApiClientTests
         var sut = new PokeApiClient(httpClient);
 
         var resources = new[] {
-            new PokeApiSharp.PokeApi.ApiResource<Pokemon>("pokemon/1"),
-            new PokeApiSharp.PokeApi.ApiResource<Pokemon>("pokemon/9999")
+            new ApiResource<Pokemon>("pokemon/1"),
+            new ApiResource<Pokemon>("pokemon/9999")
         };
 
         await Assert.ThrowsAsync<HttpRequestException>(async () =>
@@ -363,13 +362,13 @@ public class PokeApiClientTests
         httpClient.BaseAddress = new Uri(BaseAddress);
         var sut = new PokeApiClient(httpClient);
 
-        var apiResource = new PokeApiSharp.PokeApi.ApiResource<Pokemon>("pokemon/263");
+        var apiResource = new ApiResource<Pokemon>("pokemon/263");
         var byApiResource = await sut.GetAsync(apiResource);
 
         Assert.NotNull(byApiResource);
         Assert.Equal(263, byApiResource.Id);
 
-        var named = new PokeApiSharp.PokeApi.NamedApiResource<Pokemon>("zigzagoon", "pokemon/263");
+        var named = new NamedApiResource<Pokemon>("zigzagoon", "pokemon/263");
         var byNamed = await sut.GetAsync(named);
 
         Assert.NotNull(byNamed);

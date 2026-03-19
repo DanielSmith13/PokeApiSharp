@@ -1,11 +1,18 @@
 ﻿using System.Text.Json;
 using Microsoft.Extensions.Caching.Memory;
 using PokeApiSharp.Attributes;
-using PokeApiSharp.Cache;
-using PokeApiSharp.PokeApi;
+using PokeApiSharp.Caching;
 
 namespace PokeApiSharp;
 
+/// <summary>
+/// Provides functionality to interact with the PokeAPI, a RESTful API for Pokémon data.
+/// </summary>
+/// <remarks>
+/// Supports operations for retrieving specific resources, listing resources,
+/// and caching responses to optimize performance. This class serves as the primary client
+/// for interacting with the API.
+/// </remarks>
 public class PokeApiClient : IPokeApiClient
 {
     private readonly HttpClient _httpClient;
@@ -22,9 +29,20 @@ public class PokeApiClient : IPokeApiClient
 
     private const int MaxConcurrency = 8;
 
+    /// <summary>
+    /// Provides methods to interact with the PokeAPI, a RESTful API for retrieving Pokémon data.
+    /// </summary>
+    /// <param name="httpClient">
+    /// An optional HttpClient instance to use for API requests.
+    /// If not provided, a new instance will be created.
+    /// </param>
+    /// <param name="cache">
+    /// An optional IMemoryCache instance to use for caching API responses.
+    /// If not provided, a new instance will be created.
+    /// </param>
     public PokeApiClient(HttpClient? httpClient = null, IMemoryCache? cache = null)
     {
-        httpClient ??= InitialiseHttpClient(httpClient);
+        httpClient ??= InitialiseHttpClient();
         if (httpClient.BaseAddress == null)
             httpClient.BaseAddress = new Uri(BaseAddress);
         _httpClient = httpClient;
@@ -161,7 +179,7 @@ public class PokeApiClient : IPokeApiClient
             : throw new InvalidOperationException("Resource is not an API resource");
     }
     
-    private HttpClient InitialiseHttpClient(HttpClient? httpClient)
+    private HttpClient InitialiseHttpClient()
     {
         _ownsHttpClient = true;
         return new HttpClient

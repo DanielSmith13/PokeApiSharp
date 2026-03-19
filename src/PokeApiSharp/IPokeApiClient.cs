@@ -1,13 +1,20 @@
-﻿using PokeApiSharp.PokeApi;
+﻿using PokeApiSharp.Attributes;
 
 namespace PokeApiSharp;
 
+/// <summary>
+/// Defines the contract for a client that interacts with the PokeAPI to fetch various API resources.
+/// This interface provides methods for retrieving resources by name, ID, and ApiResource, as well as
+/// listing resources with pagination support. It also includes methods for fetching multiple resources
+/// in batches and clearing the internal cache. Implementations of this interface are responsible for
+/// handling HTTP requests, deserialization of responses, and error handling according to the defined behaviour.
+/// </summary>
 public interface IPokeApiClient
 {
     /// <summary>
     /// Fetches a single API resource by name. The provided <paramref name="name"/> is
     /// trimmed of leading/trailing whitespace and compared case-insensitively.
-    /// The method constructs a resource path using <see cref="GetResourcePath{T}"/> and
+    /// The method 
     /// performs an HTTP GET to the PokeAPI.
     /// </summary>
     /// <typeparam name="TResource">
@@ -42,8 +49,7 @@ public interface IPokeApiClient
 
     /// <summary>
     /// Fetches a single API resource by ID.
-    /// The method constructs a resource path using
-    /// <see cref="GetResourcePath{T}"/> and performs an HTTP GET to the PokeAPI.
+    /// The method performs an HTTP GET to the PokeAPI.
     /// </summary>
     /// <typeparam name="TResource">
     /// The CLR type that represents the API resource to fetch. This type must be
@@ -98,7 +104,7 @@ public interface IPokeApiClient
     Task<TResource?> GetAsync<TResource>(ApiResource<TResource> resource, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Fetches a list of API resources. The method constructs a resource path using <see cref="GetResourcePath{T}"/> and performs an HTTP GET to the PokeAPI with pagination parameters.
+    /// Fetches a list of API resources. The method  performs an HTTP GET to the PokeAPI with pagination parameters.
     /// </summary>
     /// <param name="limit">The maximum number of resources to return per page. Defaults to 20.</param>
     /// <param name="offset">The starting index for pagination. Defaults to 0.</param>
@@ -217,7 +223,7 @@ public interface IPokeApiClient
         CancellationToken cancellationToken = default);
     
     /// <summary>
-    /// Fetches all API resources of a given type. The method constructs a resource path using <see cref="GetResourcePath{T}"/> and performs HTTP GET to the PokeAPI with pagination parameters.
+    /// Fetches all API resources of a given type. The method  performs HTTP GET to the PokeAPI with pagination parameters.
     /// The method uses asynchronous iteration to fetch resources in batches, allowing for efficient handling of large result sets.
     /// </summary>
     /// <param name="cancellationToken"></param>
