@@ -42,7 +42,13 @@ jobs:
         dotnet-version: 10.0.x
 
     - name: Pack
-      run: dotnet pack src/PokeApiSharp/PokeApiSharp.csproj --configuration Release --output ./nupkg /p:PackageVersion=${{ github.ref_type == 'tag' && github.ref_name || '0.0.1-preview-' + github.run_number }}
+      run: |
+        if [ "${{ github.ref_type }}" == "tag" ]; then
+          VERSION="${{ github.ref_name }}"
+        else
+          VERSION="0.0.1-preview.${{ github.run_number }}"
+        fi
+        dotnet pack src/PokeApiSharp/PokeApiSharp.csproj --configuration Release --output ./nupkg /p:PackageVersion=$VERSION
 
     - name: Publish to NuGet
       if: github.ref_type == 'tag'
