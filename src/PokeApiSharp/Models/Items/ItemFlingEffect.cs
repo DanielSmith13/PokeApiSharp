@@ -14,4 +14,4 @@ public record ItemFlingEffect(
     int Id,
     string Name,
     IEnumerable<EffectEntry> EffectEntries,
-    IEnumerable<Item> Items);
+    IEnumerable<NamedApiResource<Item>> Items);

@@ -16,7 +16,7 @@ public record PokemonShape(
     string Name,
     IEnumerable<AwesomeNameEntry> AwesomeNames,
     IEnumerable<NameEntry> Names,
-    IEnumerable<PokemonSpecies> PokemonSpecies
+    IEnumerable<NamedApiResource<PokemonSpecies>> PokemonSpecies
 );
 
 /// <summary>
@@ -26,5 +26,5 @@ public record PokemonShape(
 /// <param name="Language">The language this "scientific" name is in.</param>
 public record AwesomeNameEntry(
     string AwesomeName,
-    Language Language
+    NamedApiResource<Language> Language
 );

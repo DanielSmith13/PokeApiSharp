@@ -22,7 +22,7 @@ public record Generation(
     string Name,
     IEnumerable<NamedApiResource<Ability>> Abilities,
     IEnumerable<NameEntry> Names,
-    IEnumerable<NamedApiResource<Region>> MainRegion,
+    NamedApiResource<Region> MainRegion,
     IEnumerable<NamedApiResource<Move>> Moves,
     IEnumerable<NamedApiResource<PokemonSpecies>> PokemonSpecies,
     IEnumerable<NamedApiResource<Type>> Types,

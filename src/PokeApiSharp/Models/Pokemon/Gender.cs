@@ -18,7 +18,7 @@ public record Gender(
     int Id,
     string Name,
     IEnumerable<PokemonSpeciesGender> PokemonSpeciesDetails,
-    IEnumerable<PokemonSpecies> RequiredForEvolution
+    IEnumerable<NamedApiResource<PokemonSpecies>> RequiredForEvolution
 );
 
 /// <summary>

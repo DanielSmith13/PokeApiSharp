@@ -28,7 +28,7 @@ public record Item(
     int Id,
     string Name,
     int Cost,
-    int FlingPower,
+    int? FlingPower,
     NamedApiResource<ItemFlingEffect> FlingEffect,
     IEnumerable<NamedApiResource<ItemAttribute>> Attributes,
     NamedApiResource<ItemCategory> Category,

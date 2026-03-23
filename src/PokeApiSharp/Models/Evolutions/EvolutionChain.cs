@@ -27,7 +27,7 @@ public record EvolutionChain(
 public record ChainLink(
     bool IsBaby,
     NamedApiResource<PokemonSpecies> Species,
-    NamedApiResource<EvolutionDetail> EvolutionDetails,
+    IEnumerable<EvolutionDetail> EvolutionDetails,
     IEnumerable<ChainLink> EvolvesTo
 );
 
@@ -53,36 +53,36 @@ public record ChainLink(
 /// <param name="TimeOfDay">The required time of day. Day or night.</param>
 /// <param name="TradeSpecies">The Pokémon species for which this one must be traded.</param>
 /// <param name="TurnUpsideDown">Whether the device needs to be turned upside-down as this Pokémon levels up.</param>
-/// <param name="Region">The required region in which this evolution can occur.</param>
-/// <param name="BaseForm">The requiredform for which this evolution can occur.</param>
+/// <param name="RegionId">The required region in which this evolution can occur.</param>
+/// <param name="BaseFormId">The required form for which this evolution can occur.</param>
 /// <param name="UsedMove">The move that must be used by the evolving Pokémon species during the evolution trigger event to evolve into this Pokémon species.</param>
 /// <param name="MinMoveCount">The minimum number of times a move must be used to evolve into this Pokémon species.</param>
 /// <param name="MinSteps">The minimum number of steps that must be taken to evolve into this Pokémon species.</param>
 /// <param name="MinDamageTaken">The minimum amount of damage taken during the evolution trigger event to evolve into this Pokémon species.</param>
 public record EvolutionDetail(
-    NamedApiResource<Item> Item,
+    NamedApiResource<Item>? Item,
     NamedApiResource<EvolutionTrigger> Trigger,
-    int Gender,
-    NamedApiResource<Item> HeldItem,
-    NamedApiResource<Move> KnownMove,
-    NamedApiResource<Type> KnownMoveType,
-    NamedApiResource<Location> Location,
-    int MinLevel,
-    int MinHappiness,
-    int MinBeauty,
-    int MinAffection,
+    int? Gender,
+    NamedApiResource<Item>? HeldItem,
+    NamedApiResource<Move>? KnownMove,
+    NamedApiResource<Type>? KnownMoveType,
+    NamedApiResource<Location>? Location,
+    int? MinLevel,
+    int? MinHappiness,
+    int? MinBeauty,
+    int? MinAffection,
     bool NeedsMultiplayer,
     bool NeedsOverworldRain,
-    NamedApiResource<PokemonSpecies> PartySpecies,
-    NamedApiResource<Type> PartyType,
-    int RelativePhysicalStats,
+    NamedApiResource<PokemonSpecies>? PartySpecies,
+    NamedApiResource<Type>? PartyType,
+    int? RelativePhysicalStats,
     string TimeOfDay,
-    NamedApiResource<PokemonSpecies> TradeSpecies,
+    NamedApiResource<PokemonSpecies>? TradeSpecies,
     bool TurnUpsideDown,
-    NamedApiResource<Region> Region,
-    NamedApiResource<PokemonSpecies> BaseForm,
-    NamedApiResource<Move> UsedMove,
-    int MinMoveCount,
-    int MinSteps,
-    int MinDamageTaken
+    int? RegionId,
+    int? BaseFormId,
+    NamedApiResource<Move>? UsedMove,
+    int? MinMoveCount,
+    int? MinSteps,
+    int? MinDamageTaken
 );
