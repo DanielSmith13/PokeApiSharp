@@ -11,8 +11,8 @@ namespace PokeApiSharp;
 /// </summary>
 /// <param name="Id">The identifier for this resource.</param>
 /// <param name="Name">The name for this resource.</param>
-/// <param name="PokemonSpeciesDetails">The name of this resource listed in different languages.</param>
-/// <param name="RequiredForEvolution">A list of all Pokémon species that are members of this egg group.</param>
+/// <param name="PokemonSpeciesDetails">Representation of the gender details for Pokémon species.</param>
+/// <param name="RequiredForEvolution">A list of Pokémon species that require this gender for evolution.</param>
 [PokeApiResource("gender")]
 public record Gender(
     int Id,
