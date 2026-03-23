@@ -14,6 +14,7 @@ A lightweight, modern .NET 10 wrapper for the [PokéAPI](https://pokeapi.co/), p
 - **Async First**: All API interactions are fully asynchronous.
 - **Lightweight**: Minimal dependencies, leveraging `System.Text.Json` and `Microsoft.Extensions.Caching.Memory`.
 - **Flexible**: Easy to use with or without Dependency Injection.
+- **Unmapped Property Detection**: Integrated warning logging to detect when PokéAPI returns properties not yet mapped in the models.
 
 ## Installation
 
@@ -75,7 +76,7 @@ foreach (var p in allPokemon)
 
 ### Dependency Injection
 
-Register `PokeApiClient` in your `Program.cs` or `Startup.cs`:
+Register `PokeApiClient` in your `Program.cs` or `Startup.cs` along with caching and logging services:
 
 ```csharp
 builder.Services.AddMemoryCache();
@@ -109,6 +110,17 @@ using var client = new PokeApiClient(cache: myCache);
 // Manual cache management
 client.ClearCache();
 ```
+
+### Logging
+
+The `PokeApiClient` can optionally accept an `ILogger<PokeApiClient>` to log warnings when it encounters JSON properties from the PokéAPI that are not mapped to the library's models. This is useful for identifying when the API has been updated with new data that the library isn't yet capturing.
+
+```csharp
+ILogger<PokeApiClient> logger = loggerFactory.CreateLogger<PokeApiClient>();
+using var client = new PokeApiClient(logger: logger);
+```
+
+If a logger is provided, any unmapped properties will be logged as warnings, including the resource type and the JSON paths of the missing properties.
 
 ## Contributing
 

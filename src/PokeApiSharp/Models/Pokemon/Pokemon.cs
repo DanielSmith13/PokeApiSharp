@@ -174,28 +174,6 @@ public record PokemonStatPast(
 );
 
 /// <summary>
-/// Represents the sprites used to depict a Pokémon in the game.
-/// </summary>
-/// <param name="BackDefault">The default depiction of this Pokémon from the back in battle.</param>
-/// <param name="BackFemale">The female depiction of this Pokémon from the back in battle.</param>
-/// <param name="BackShiny">The shiny depiction of this Pokémon from the back in battle.</param>
-/// <param name="BackShinyFemale">The shiny female depiction of this Pokémon from the back in battle.</param>
-/// <param name="FrontDefault">The default depiction of this Pokémon from the front in battle.</param>
-/// <param name="FrontFemale">The female depiction of this Pokémon from the front in battle.</param>
-/// <param name="FrontShiny">The shiny depiction of this Pokémon from the front in battle.</param>
-/// <param name="FrontShinyFemale">The shiny female depiction of this Pokémon from the front in battle.</param>
-public record PokemonSprites(
-    string? BackDefault,
-    string? BackFemale,
-    string? BackShiny,
-    string? BackShinyFemale,
-    string? FrontDefault,
-    string? FrontFemale,
-    string? FrontShiny,
-    string? FrontShinyFemale
-);
-
-/// <summary>
 /// Represents the cries used to depict a Pokémon in the game.
 /// </summary>
 /// <param name="Latest">The latest depiction of this Pokémon's cry.</param>

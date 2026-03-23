@@ -1,7 +1,9 @@
 ﻿using System.Text.Json;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using PokeApiSharp.Attributes;
 using PokeApiSharp.Caching;
+using PokeApiSharp.Utilities;
 
 namespace PokeApiSharp;
 
@@ -19,6 +21,7 @@ public class PokeApiClient : IPokeApiClient
     private bool _ownsHttpClient;
     private readonly PokeApiCache _cache;
     private bool _ownsCache;
+    private readonly ILogger<PokeApiClient>? _logger;
     private const string BaseAddress = "https://pokeapi.co/api/v2/";
 
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -40,19 +43,23 @@ public class PokeApiClient : IPokeApiClient
     /// An optional IMemoryCache instance to use for caching API responses.
     /// If not provided, a new instance will be created.
     /// </param>
-    public PokeApiClient(HttpClient? httpClient = null, IMemoryCache? cache = null)
+    /// <param name="logger">
+    /// An optional ILogger instance for logging unmapped properties and other diagnostic information.
+    /// </param>
+    public PokeApiClient(HttpClient? httpClient = null, IMemoryCache? cache = null, ILogger<PokeApiClient>? logger = null)
     {
         httpClient ??= InitialiseHttpClient();
         if (httpClient.BaseAddress == null)
             httpClient.BaseAddress = new Uri(BaseAddress);
         _httpClient = httpClient;
         _cache = InitialiseCache(cache);
+        _logger = logger;
     }
 
     /// <inheritdoc/>
     public async Task<TResource?> GetAsync<TResource>(string name, CancellationToken cancellationToken = default)
         => await GetResourceAsync<TResource>(
-            $"{GetResourcePath<TResource>()}/{name.Trim().ToLowerInvariant()}",
+            GetResourcePath<TResource>($"/{name.Trim().ToLowerInvariant()}"),
             cancellationToken);
 
     /// <inheritdoc/>
@@ -68,7 +75,7 @@ public class PokeApiClient : IPokeApiClient
     public async Task<NamedApiResourceList<TResource>> ListAsync<TResource>(int? limit = 20, int? offset = 0,
         CancellationToken cancellationToken = default)
         => await GetResourceAsync<NamedApiResourceList<TResource>>(
-               $"{GetResourcePath<TResource>()}?limit={limit}&offset={offset}",
+               GetResourcePath<TResource>($"?limit={limit}&offset={offset}"),
                cancellationToken) ??
            new NamedApiResourceList<TResource>(0, null, null, new List<NamedApiResource<TResource>>());
 
@@ -99,7 +106,7 @@ public class PokeApiClient : IPokeApiClient
 
     /// <inheritdoc/>
     public void ClearCache() => _cache.ClearCache();
-    
+
     /// <inheritdoc/>
     public void Dispose()
     {
@@ -120,10 +127,27 @@ public class PokeApiClient : IPokeApiClient
     {
         using var response = await _httpClient.GetAsync(url, cancellationToken);
         response.EnsureSuccessStatusCode();
+        await LogUnmappedJsonProperties<T>(response, cancellationToken);
         await using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
         var resource = await JsonSerializer.DeserializeAsync<T>(contentStream, JsonOptions, cancellationToken);
         _cache.SetCachedResource(url, resource);
         return resource;
+    }
+
+    private async Task LogUnmappedJsonProperties<T>(
+        HttpResponseMessage response,
+        CancellationToken cancellationToken)
+    {
+        if (_logger is null) return;
+
+        var json = await response.Content.ReadAsStringAsync(cancellationToken);
+        var unmapped = JsonDiffHelpers.FindUnmappedJsonProperties<T>(json, JsonOptions);
+
+        if (unmapped.Count != 0)
+        {
+            _logger.LogWarning("Unmapped properties found for resource {ResourceType}: {UnmappedProperties}",
+                typeof(T).Name, string.Join(", ", unmapped));
+        }
     }
 
     private async Task<IEnumerable<T?>> FetchResourcesAsync<T>(IEnumerable<string> urls,
@@ -171,14 +195,15 @@ public class PokeApiClient : IPokeApiClient
         }
     }
 
-    private static string GetResourcePath<TResource>()
+    private static string GetResourcePath<TResource>(string path = "")
     {
+        if (typeof(TResource) == typeof(PokemonLocationArea)) return $"pokemon/{path}/encounters";
         var attribute = typeof(TResource).GetCustomAttributes(typeof(PokeApiResource), false);
         return attribute.Length > 0
-            ? ((PokeApiResource)attribute[0]).Path
+            ? ((PokeApiResource)attribute[0]).Path + path
             : throw new InvalidOperationException("Resource is not an API resource");
     }
-    
+
     private HttpClient InitialiseHttpClient()
     {
         _ownsHttpClient = true;
@@ -187,7 +212,7 @@ public class PokeApiClient : IPokeApiClient
             BaseAddress = new Uri(BaseAddress),
         };
     }
-    
+
     private PokeApiCache InitialiseCache(IMemoryCache? cache)
     {
         if (cache is not null) return new PokeApiCache(cache);

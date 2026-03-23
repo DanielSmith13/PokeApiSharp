@@ -349,7 +349,7 @@ public class PokeApiClientTests
 
         var sut = new PokeApiClient(httpClient);
 
-        await Assert.ThrowsAsync<System.Text.Json.JsonException>(async () => { await sut.GetAsync<Pokemon>(1); });
+        await Assert.ThrowsAsync<JsonException>(async () => { await sut.GetAsync<Pokemon>(1); });
     }
 
     [Fact]

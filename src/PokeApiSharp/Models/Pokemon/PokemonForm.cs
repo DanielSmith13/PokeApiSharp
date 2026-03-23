@@ -38,7 +38,7 @@ public record PokemonForm(
     string FormName,
     NamedApiResource<Pokemon> Pokemon,
     IEnumerable<PokemonFormType> Types,
-    PokemonFormSprites Sprites,
+    PokemonSprites Sprites,
     NamedApiResource<VersionGroup> VersionGroup,
     IEnumerable<NameEntry> Names,
     IEnumerable<NameEntry> FormNames
@@ -52,18 +52,4 @@ public record PokemonForm(
 public record PokemonFormType(
     int Slot,
     NamedApiResource<PokemonType> Type
-);
-
-/// <summary>
-/// A set of sprites used to depict a Pokémon form in the game.
-/// </summary>
-/// <param name="FrontDefault">The default depiction of this Pokémon form from the front in battle.</param>
-/// <param name="FrontShiny">The shiny depiction of this Pokémon form from the front in battle.</param>
-/// <param name="BackDefault">The default depiction of this Pokémon form from the back in battle.</param>
-/// <param name="BackShiny">The shiny depiction of this Pokémon form from the back in battle.</param>
-public record PokemonFormSprites(
-    string FrontDefault,
-    string FrontShiny,
-    string BackDefault,
-    string BackShiny
 );
