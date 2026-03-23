@@ -26,7 +26,7 @@ namespace PokeApiSharp;
 /// <param name="FlavourTextEntries">The flavour text of this move listed in different languages.</param>
 /// <param name="Generation">The generation in which this move was introduced.</param>
 /// <param name="Machines">A list of the machines that teach this move.</param>
-/// <param name="MetaData">Metadata about this move.</param>
+/// <param name="Meta">Metadata about this move.</param>
 /// <param name="Names">The name of this resource listed in different languages.</param>
 /// <param name="PastValues">A list of move resource value changes across version groups of the game.</param>
 /// <param name="StatChanges">A list of stats this moves effects and how much it effects them.</param>
@@ -38,7 +38,7 @@ public record Move(
     int Id,
     string Name,
     int Accuracy,
-    int EffectChance,
+    int? EffectChance,
     int Pp,
     int Priority,
     int Power,
@@ -48,11 +48,11 @@ public record Move(
     NamedApiResource<MoveDamageClass> DamageClass,
     IEnumerable<VerboseEffect> EffectEntries,
     IEnumerable<AbilityEffectChange> EffectChanges,
-    IEnumerable<Pokemon> LearnedByPokemon,
+    IEnumerable<NamedApiResource<Pokemon>> LearnedByPokemon,
     [property: JsonPropertyName("flavor_text_entries")]IEnumerable<MoveFlavourText> FlavourTextEntries,
     NamedApiResource<Generation> Generation,
     IEnumerable<MachineVersionDetail> Machines,
-    MoveMetaData MetaData,
+    MoveMetaData Meta,
     IEnumerable<NameEntry> Names,
     IEnumerable<PastMoveStatValues> PastValues,
     IEnumerable<MoveStatChange> StatChanges,
@@ -107,10 +107,10 @@ public record MoveFlavourText(
 public record MoveMetaData(
     NamedApiResource<MoveAilment> Ailment,
     NamedApiResource<MoveCategory> Category,
-    int MinHits,
-    int MaxHits,
-    int MinTurns,
-    int MaxTurns,
+    int? MinHits,
+    int? MaxHits,
+    int? MinTurns,
+    int? MaxTurns,
     int Drain,
     int Healing,
     int CritRate,

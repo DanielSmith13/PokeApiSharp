@@ -13,6 +13,6 @@ namespace PokeApiSharp;
 public record ItemAttribute(
     int Id,
     string Name,
-    IEnumerable<Item> Items,
+    IEnumerable<NamedApiResource<Item>> Items,
     IEnumerable<NameEntry> Names,
     IEnumerable<DescriptionEntry> Descriptions);

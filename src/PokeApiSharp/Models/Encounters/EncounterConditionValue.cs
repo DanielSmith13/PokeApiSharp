@@ -7,12 +7,12 @@ namespace PokeApiSharp;
 /// </summary>
 /// <param name="Id">The identifier for this resource.</param>
 /// <param name="Name">The name for this resource.</param>
-/// <param name="EncounterCondition">The condition this encounter condition value pertains to.</param>
+/// <param name="Condition">The condition this encounter condition value pertains to.</param>
 /// <param name="Names">The name of this resource listed in different languages.</param>
 [PokeApiResource("encounter-condition-value")]
 public record EncounterConditionValue(
     int Id,
     string Name,
-    NamedApiResource<EncounterCondition> EncounterCondition,
+    NamedApiResource<EncounterCondition> Condition,
     IEnumerable<NameEntry> Names
 );
