@@ -59,7 +59,7 @@ public class PokeApiClient : IPokeApiClient
     /// <inheritdoc/>
     public async Task<TResource?> GetAsync<TResource>(string name, CancellationToken cancellationToken = default)
         => await GetResourceAsync<TResource>(
-            GetResourcePath<TResource>($"/{name.Trim().ToLowerInvariant()}"),
+            $"{GetResourcePath<TResource>()}/{name.Trim().ToLowerInvariant()}",
             cancellationToken);
 
     /// <inheritdoc/>
@@ -75,7 +75,7 @@ public class PokeApiClient : IPokeApiClient
     public async Task<NamedApiResourceList<TResource>> ListAsync<TResource>(int? limit = 20, int? offset = 0,
         CancellationToken cancellationToken = default)
         => await GetResourceAsync<NamedApiResourceList<TResource>>(
-               GetResourcePath<TResource>($"?limit={limit}&offset={offset}"),
+               $"{GetResourcePath<TResource>()}?limit={limit}&offset={offset}",
                cancellationToken) ??
            new NamedApiResourceList<TResource>(0, null, null, new List<NamedApiResource<TResource>>());
 
@@ -195,13 +195,12 @@ public class PokeApiClient : IPokeApiClient
         }
     }
 
-    private static string GetResourcePath<TResource>(string path = "")
+    private static string GetResourcePath<TResource>()
     {
-        if (typeof(TResource) == typeof(PokemonLocationArea)) return $"pokemon/{path}/encounters";
         var attribute = typeof(TResource).GetCustomAttributes(typeof(PokeApiResource), false);
         return attribute.Length > 0
-            ? ((PokeApiResource)attribute[0]).Path + path
-            : throw new InvalidOperationException("Resource is not an API resource");
+            ? ((PokeApiResource)attribute[0]).Path
+            : throw new InvalidOperationException($"Resource {typeof(TResource).Name} is not an API resource");
     }
 
     private HttpClient InitialiseHttpClient()

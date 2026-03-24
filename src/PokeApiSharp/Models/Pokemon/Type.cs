@@ -64,8 +64,8 @@ public record TypeSprites(
 /// <param name="NameIcon">A URL pointing to the name icon for this type.</param>
 /// <param name="SymbolIcon">A URL pointing to the symbol icon for this type.</param>
 public record TypeSpritesGame(
-    [property: JsonPropertyName("name_icon")] string NameIcon,
-    [property: JsonPropertyName("symbol_icon")] string SymbolIcon
+    [property: JsonPropertyName("name_icon")] string? NameIcon,
+    [property: JsonPropertyName("symbol_icon")] string? SymbolIcon
 );
 
 /// <summary>

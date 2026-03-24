@@ -13,5 +13,19 @@ public class MockLogger<T> : ILogger<T>
 
     public bool IsEnabled(LogLevel logLevel) => true;
 
-    public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
+    public IDisposable BeginScope<TState>(TState state) where TState : notnull => NullScope.Instance;
+}
+
+internal sealed class NullScope : IDisposable
+{
+    public static readonly NullScope Instance = new();
+
+    private NullScope()
+    {
+    }
+
+    public void Dispose()
+    {
+        // No-op
+    }
 }

@@ -1,15 +1,12 @@
-namespace PokeApiSharp.Utilities;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
+namespace PokeApiSharp.Utilities;
+
 /// <summary>
 /// Detect unmapped JSON properties while respecting JsonPropertyName, JsonIgnore,
-/// JsonExtensionData, JsonSerializerOptions.PropertyNamingPolicy and PropertyNameCaseInsensitive.
+/// JsonExtensionData, JsonSerializerOptions.PropertyNamingPolicy.
 /// - Recurses into nested objects
 /// - Aggregates repeated missing properties across array items into concise messages
 /// </summary>
@@ -20,7 +17,7 @@ public static class JsonDiffHelpers
     /// that do not map to properties of the specified type. The method takes into account:
     /// - Properties annotated with JsonPropertyName and JsonIgnore attributes.
     /// - JsonExtensionData for flexible JSON patterns.
-    /// - Serialization rules such as PropertyNamingPolicy and PropertyNameCaseInsensitive.
+    /// - Serialization rules such as PropertyNamingPolicy.
     /// It also handles nested objects and array structures, consolidating repeated
     /// missing properties into concise messages.
     /// </summary>
@@ -38,7 +35,7 @@ public static class JsonDiffHelpers
         return GetMissingForObject(typeof(T), root, options, "");
     }
 
-    private static List<string> GetMissingForObject(Type type, JsonElement element, JsonSerializerOptions options, string currentPath)
+    private static List<string> GetMissingForObject(System.Type type, JsonElement element, JsonSerializerOptions options, string currentPath)
     {
         var outMissing = new List<string>();
 
@@ -109,7 +106,7 @@ public static class JsonDiffHelpers
     }
 
     private static List<string> AnalyseArrayForMissing(
-        Type itemType,
+        System.Type itemType,
         JsonElement arrayElement,
         JsonSerializerOptions options,
         string prefixPath)
@@ -159,7 +156,7 @@ public static class JsonDiffHelpers
 
     private static string JoinPath(string prefix, string name) => string.IsNullOrEmpty(prefix) ? name : $"{prefix}.{name}";
     
-    private static Type? GetEnumerableItemType(Type type)
+    private static System.Type? GetEnumerableItemType(System.Type type)
     {
         if (type.IsArray) return type.GetElementType();
 

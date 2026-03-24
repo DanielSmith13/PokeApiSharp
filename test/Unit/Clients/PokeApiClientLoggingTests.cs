@@ -9,15 +9,16 @@ namespace Unit.Clients;
 public class PokeApiClientLoggingTests
 {
     private const string BaseAddress = "https://pokeapi.co/api/v2/";
-    private const string jsonWithExtra = "{\"id\":1,\"name\":\"bulbasaur\",\"extra_prop\":\"value\"}";
-    private const string jsonValid = "{\"id\":1,\"name\":\"bulbasaur\"}";
-
+    private const string JsonValid = "{\"id\":1,\"name\":\"bulbasaur\"}";
+    private const string JsonWithExtra = "{\"id\":1,\"name\":\"bulbasaur\",\"extra_prop\":\"value\"}";
+    private const string JsonWithExtraInList = "{\"count\": 1,\"next\": null,\"previous\": null,\"results\": [{ \"name\": \"bulbasaur\", \"url\": \"https://pokeapi.co/api/v2/pokemon/1/\", \"extra_prop\": \"value\" }]}";
+    
     [Fact]
     public async Task GetAsync_LogsWarning_WhenUnmappedPropertiesPresent()
     {
         var response = new HttpResponseMessage(HttpStatusCode.OK)
         {
-            Content = new StringContent(jsonWithExtra, Encoding.UTF8, "application/json")
+            Content = new StringContent(JsonWithExtra, Encoding.UTF8, "application/json")
         };
         var handler = new CaptureHandler(response);
         using var httpClient = new HttpClient(handler);
@@ -37,7 +38,7 @@ public class PokeApiClientLoggingTests
     {
         var response = new HttpResponseMessage(HttpStatusCode.OK)
         {
-            Content = new StringContent(jsonValid, Encoding.UTF8, "application/json")
+            Content = new StringContent(JsonValid, Encoding.UTF8, "application/json")
         };
         var handler = new CaptureHandler(response);
         using var httpClient = new HttpClient(handler);
@@ -55,7 +56,7 @@ public class PokeApiClientLoggingTests
     {
         var response = new HttpResponseMessage(HttpStatusCode.OK)
         {
-            Content = new StringContent(jsonWithExtra, Encoding.UTF8, "application/json")
+            Content = new StringContent(JsonWithExtra, Encoding.UTF8, "application/json")
         };
         var handler = new CaptureHandler(response);
         using var httpClient = new HttpClient(handler);
@@ -72,7 +73,7 @@ public class PokeApiClientLoggingTests
     {
         var response = new HttpResponseMessage(HttpStatusCode.OK)
         {
-            Content = new StringContent(jsonWithExtra, Encoding.UTF8, "application/json")
+            Content = new StringContent(JsonWithExtraInList, Encoding.UTF8, "application/json")
         };
         var handler = new CaptureHandler(response);
         using var httpClient = new HttpClient(handler);
@@ -84,6 +85,6 @@ public class PokeApiClientLoggingTests
         
         var warning = Assert.Single(logger.LoggedMessages);
         Assert.Equal(LogLevel.Warning, warning.Level);
-        Assert.Contains("Unmapped properties found for resource NamedApiResourceList`1: extra_in_list", warning.Message);
+        Assert.Contains("Unmapped properties found for resource NamedApiResourceList`1: results[].extra_prop", warning.Message);
     }
 }
