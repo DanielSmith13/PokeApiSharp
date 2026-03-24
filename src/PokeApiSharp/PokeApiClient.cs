@@ -127,20 +127,28 @@ public class PokeApiClient : IPokeApiClient
     {
         using var response = await _httpClient.GetAsync(url, cancellationToken);
         response.EnsureSuccessStatusCode();
-        await LogUnmappedJsonProperties<T>(response, cancellationToken);
-        await using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
-        var resource = await JsonSerializer.DeserializeAsync<T>(contentStream, JsonOptions, cancellationToken);
+
+        T? resource;
+        if (_logger is not null)
+        {
+            var json = await response.Content.ReadAsStringAsync(cancellationToken);
+            LogUnmappedJsonProperties<T>(json);
+            resource = JsonSerializer.Deserialize<T>(json, JsonOptions);
+        }
+        else
+        {
+            await using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
+            resource = await JsonSerializer.DeserializeAsync<T>(contentStream, JsonOptions, cancellationToken);
+        }
+
         _cache.SetCachedResource(url, resource);
         return resource;
     }
 
-    private async Task LogUnmappedJsonProperties<T>(
-        HttpResponseMessage response,
-        CancellationToken cancellationToken)
+    private void LogUnmappedJsonProperties<T>(string json)
     {
         if (_logger is null) return;
 
-        var json = await response.Content.ReadAsStringAsync(cancellationToken);
         var unmapped = JsonDiffHelpers.FindUnmappedJsonProperties<T>(json, JsonOptions);
 
         if (unmapped.Count != 0)
