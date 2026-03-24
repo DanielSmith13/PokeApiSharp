@@ -67,6 +67,31 @@ public class PokemonLocationAreaTests
     }
 
     [Fact]
+    public async Task GetPokemonLocationAreasAsync_ByName_NormalisesName()
+    {
+      var response = new HttpResponseMessage(HttpStatusCode.OK)
+       {
+           Content = new StringContent(PokemonLocationAreaJson, Encoding.UTF8, "application/json")
+       };
+      var handler = new CaptureHandler(response);
+       using var httpClient = new HttpClient(handler);
+       httpClient.BaseAddress = new Uri("https://pokeapi.co/api/v2/");
+ 
+       var sut = new PokeApiClient(httpClient);
+ 
+       var result = await sut.GetPokemonLocationAreasAsync(" PiKaChU ");
+ 
+       Assert.NotNull(result);
+       var list = result.ToList();
+       Assert.Single(list);
+       Assert.Equal("canalave-city-area", list[0].LocationArea.Name);
+
+       Assert.NotNull(handler.LastRequest);
+       Assert.Equal("https://pokeapi.co/api/v2/pokemon/pikachu/encounters", handler.LastRequest.RequestUri?.ToString());
+       Assert.Equal(HttpMethod.Get, handler.LastRequest.Method);
+    }
+
+    [Fact]
     public async Task GetPokemonLocationAreasAsync_ById_UsesExpectedUrl()
     {
         var response = new HttpResponseMessage(HttpStatusCode.OK)
@@ -83,6 +108,10 @@ public class PokemonLocationAreaTests
         var result = await sut.GetPokemonLocationAreasAsync(25);
 
         Assert.NotNull(result);
+        var list = result.ToList();
+        Assert.Single(list);
+        Assert.Equal("canalave-city-area", list[0].LocationArea.Name);
+        
         Assert.NotNull(handler.LastRequest);
         Assert.Equal("https://pokeapi.co/api/v2/pokemon/25/encounters", handler.LastRequest.RequestUri?.ToString());
         Assert.Equal(HttpMethod.Get, handler.LastRequest.Method);
