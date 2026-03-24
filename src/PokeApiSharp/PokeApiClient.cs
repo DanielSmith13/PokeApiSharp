@@ -105,6 +105,17 @@ public class PokeApiClient : IPokeApiClient
     }
 
     /// <inheritdoc/>
+    public async Task<IEnumerable<PokemonLocationArea>> GetPokemonLocationAreasAsync(string name,
+        CancellationToken cancellationToken = default)
+        => await GetResourceAsync<IEnumerable<PokemonLocationArea>>(
+               $"pokemon/{name.Trim().ToLowerInvariant()}/encounters", cancellationToken) ?? [];
+
+    /// <inheritdoc/>
+    public async Task<IEnumerable<PokemonLocationArea>> GetPokemonLocationAreasAsync(int id,
+        CancellationToken cancellationToken = default)
+        => await GetPokemonLocationAreasAsync(id.ToString(), cancellationToken);
+
+    /// <inheritdoc/>
     public void ClearCache() => _cache.ClearCache();
 
     /// <inheritdoc/>
