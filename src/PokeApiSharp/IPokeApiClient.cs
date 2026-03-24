@@ -243,7 +243,25 @@ public interface IPokeApiClient
     /// </code>
     /// </example>
     Task<IEnumerable<TResource?>> GetAsync<TResource>(CancellationToken cancellationToken = default);
-    
+
+    /// <summary>
+    /// Gets a list of location areas where a Pokémon can be encountered.
+    /// </summary>
+    /// <param name="name">The name of the Pokémon.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A list of location areas.</returns>
+    Task<IEnumerable<PokemonLocationArea>> GetPokemonLocationAreasAsync(string name,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets a list of location areas where a Pokémon can be encountered.
+    /// </summary>
+    /// <param name="id">The identifier of the Pokémon.</param>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <returns>A list of location areas.</returns>
+    Task<IEnumerable<PokemonLocationArea>> GetPokemonLocationAreasAsync(int id,
+        CancellationToken cancellationToken = default);
+
     /// <summary>
     /// Clears the internal cache.
     /// </summary>
