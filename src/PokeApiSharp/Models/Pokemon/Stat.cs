@@ -25,6 +25,7 @@ public record Stat(
     bool IsBattleOnly,
     MoveStatEffectSet AffectingMoves,
     NatureStatEffectSet AffectingNatures,
+    IEnumerable<NamedApiResource<Item>> AffectingItems,
     IEnumerable<NamedApiResource<Characteristic>> Characteristics,
     NamedApiResource<MoveDamageClass> MoveDamageClass,
     IEnumerable<NameEntry> Names

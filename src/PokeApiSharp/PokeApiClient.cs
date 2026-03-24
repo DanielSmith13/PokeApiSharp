@@ -1,7 +1,9 @@
 ﻿using System.Text.Json;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using PokeApiSharp.Attributes;
 using PokeApiSharp.Caching;
+using PokeApiSharp.Utilities;
 
 namespace PokeApiSharp;
 
@@ -19,6 +21,7 @@ public class PokeApiClient : IPokeApiClient
     private bool _ownsHttpClient;
     private readonly PokeApiCache _cache;
     private bool _ownsCache;
+    private readonly ILogger<PokeApiClient>? _logger;
     private const string BaseAddress = "https://pokeapi.co/api/v2/";
 
     private static readonly JsonSerializerOptions JsonOptions = new()
@@ -40,13 +43,17 @@ public class PokeApiClient : IPokeApiClient
     /// An optional IMemoryCache instance to use for caching API responses.
     /// If not provided, a new instance will be created.
     /// </param>
-    public PokeApiClient(HttpClient? httpClient = null, IMemoryCache? cache = null)
+    /// <param name="logger">
+    /// An optional ILogger instance for logging unmapped properties and other diagnostic information.
+    /// </param>
+    public PokeApiClient(HttpClient? httpClient = null, IMemoryCache? cache = null, ILogger<PokeApiClient>? logger = null)
     {
         httpClient ??= InitialiseHttpClient();
         if (httpClient.BaseAddress == null)
             httpClient.BaseAddress = new Uri(BaseAddress);
         _httpClient = httpClient;
         _cache = InitialiseCache(cache);
+        _logger = logger;
     }
 
     /// <inheritdoc/>
@@ -99,7 +106,7 @@ public class PokeApiClient : IPokeApiClient
 
     /// <inheritdoc/>
     public void ClearCache() => _cache.ClearCache();
-    
+
     /// <inheritdoc/>
     public void Dispose()
     {
@@ -120,10 +127,35 @@ public class PokeApiClient : IPokeApiClient
     {
         using var response = await _httpClient.GetAsync(url, cancellationToken);
         response.EnsureSuccessStatusCode();
-        await using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
-        var resource = await JsonSerializer.DeserializeAsync<T>(contentStream, JsonOptions, cancellationToken);
+
+        T? resource;
+        if (_logger is not null)
+        {
+            var json = await response.Content.ReadAsStringAsync(cancellationToken);
+            LogUnmappedJsonProperties<T>(json);
+            resource = JsonSerializer.Deserialize<T>(json, JsonOptions);
+        }
+        else
+        {
+            await using var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken);
+            resource = await JsonSerializer.DeserializeAsync<T>(contentStream, JsonOptions, cancellationToken);
+        }
+
         _cache.SetCachedResource(url, resource);
         return resource;
+    }
+
+    private void LogUnmappedJsonProperties<T>(string json)
+    {
+        if (_logger is null) return;
+
+        var unmapped = JsonDiffHelpers.FindUnmappedJsonProperties<T>(json, JsonOptions);
+
+        if (unmapped.Count != 0)
+        {
+            _logger.LogWarning("Unmapped properties found for resource {ResourceType}: {UnmappedProperties}",
+                typeof(T).Name, string.Join(", ", unmapped));
+        }
     }
 
     private async Task<IEnumerable<T?>> FetchResourcesAsync<T>(IEnumerable<string> urls,
@@ -176,9 +208,9 @@ public class PokeApiClient : IPokeApiClient
         var attribute = typeof(TResource).GetCustomAttributes(typeof(PokeApiResource), false);
         return attribute.Length > 0
             ? ((PokeApiResource)attribute[0]).Path
-            : throw new InvalidOperationException("Resource is not an API resource");
+            : throw new InvalidOperationException($"Resource {typeof(TResource).Name} is not an API resource");
     }
-    
+
     private HttpClient InitialiseHttpClient()
     {
         _ownsHttpClient = true;
@@ -187,7 +219,7 @@ public class PokeApiClient : IPokeApiClient
             BaseAddress = new Uri(BaseAddress),
         };
     }
-    
+
     private PokeApiCache InitialiseCache(IMemoryCache? cache)
     {
         if (cache is not null) return new PokeApiCache(cache);
