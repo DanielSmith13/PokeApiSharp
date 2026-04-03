@@ -1,8 +1,115 @@
+# ---- Build outputs ----
 bin/
 obj/
-/packages/
-riderModule.iml
-/_ReSharper.Caches/
+publish/
+artifacts/
+*.dll
+*.exe
 
+# ---- User-specific files / IDE ----
+# Rider
 .idea/
+*.sln.DotSettings.user
 *.DotSettings.user
+.rider/
+_ReSharper.Caches/
+riderModule.iml
+
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.ncb
+*.sdf
+*.cachefile
+
+# Visual Studio Code
+.vscode/
+.vscode/*workspaceStorage/
+# Optional history folder from extensions
+.history/
+
+# ---- NuGet & packages ----
+*.nupkg
+packages/
+project.lock.json
+project.fragment.lock.json
+
+# ---- Logs, temp ----
+*.log
+logs/
+*.tmp
+*.temp
+*.pid
+
+# ---- Test results / coverage ----
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+coverage/
+coverage.opencover.xml
+*.lcov
+
+# ---- Config & secrets you should not commit ----
+.env
+.env.local
+.env.*.local
+appsettings.*.Development.json
+secrets.json
+local.settings.json
+launchSettings.json
+credentials.json
+*.key
+*.pem
+*.pfx
+
+# ---- Tooling / build caches ----
+.vscode-test/
+.vs-cache/
+packages.lock.json
+project.assets.json
+
+# ---- OS files ----
+Thumbs.db
+Desktop.ini
+.DS_Store
+Icon?
+ehthumbs.db
+
+# ---- Common generated files from analyzers / coverage / profiling ----
+*.coverage
+*.coverage.*
+coverage/*
+*.prof
+*.nprof
+
+# ---- Documentation / generated artifacts ----
+docs/_build/
+*.docx
+*.pdf
+
+# ---- AI tooling and model/cache files (examples) ----
+# Many AI tools create caches or local history. Add entries for any tool you actually use.
+.copilot/
+.copilot-*
+.chatgpt/
+.chat-gpt/
+.claude/
+.openai/
+.ai/
+.aichat/
+.openai_history/
+.hf_cache/
+.huggingface/
+transformers_cache/
+model_cache/
+# local files that may contain API keys or session tokens
+*.api_key
+*.apikey
+*.openai_key
+*.hf_token
+openai.key
+huggingface.key

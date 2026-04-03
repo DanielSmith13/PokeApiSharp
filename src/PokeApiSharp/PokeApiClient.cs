@@ -46,13 +46,16 @@ public class PokeApiClient : IPokeApiClient
     /// <param name="logger">
     /// An optional ILogger instance for logging unmapped properties and other diagnostic information.
     /// </param>
-    public PokeApiClient(HttpClient? httpClient = null, IMemoryCache? cache = null, ILogger<PokeApiClient>? logger = null)
+    /// <param name="cacheDuration">
+    /// How long each cached entry is kept before expiring. Defaults to one hour if not specified.
+    /// </param>
+    public PokeApiClient(HttpClient? httpClient = null, IMemoryCache? cache = null, ILogger<PokeApiClient>? logger = null, TimeSpan? cacheDuration = null)
     {
         httpClient ??= InitialiseHttpClient();
         if (httpClient.BaseAddress == null)
             httpClient.BaseAddress = new Uri(BaseAddress);
         _httpClient = httpClient;
-        _cache = InitialiseCache(cache);
+        _cache = InitialiseCache(cache, cacheDuration);
         _logger = logger;
     }
 
@@ -231,10 +234,10 @@ public class PokeApiClient : IPokeApiClient
         };
     }
 
-    private PokeApiCache InitialiseCache(IMemoryCache? cache)
+    private PokeApiCache InitialiseCache(IMemoryCache? cache, TimeSpan? cacheDuration)
     {
-        if (cache is not null) return new PokeApiCache(cache);
+        if (cache is not null) return new PokeApiCache(cache, cacheDuration);
         _ownsCache = true;
-        return new PokeApiCache(new MemoryCache(new MemoryCacheOptions()));
+        return new PokeApiCache(new MemoryCache(new MemoryCacheOptions()), cacheDuration);
     }
 }

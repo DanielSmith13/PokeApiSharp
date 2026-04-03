@@ -7,8 +7,21 @@ namespace PokeApiSharp.Caching;
 /// Implements a caching mechanism for PokeApi resources using IMemoryCache.
 /// </summary>
 /// <param name="cache">An instance of IMemoryCache used for caching PokeApi resources.</param>
-public class PokeApiCache(IMemoryCache cache) : IPokeApiCache
+/// <param name="cacheDuration">
+/// How long each cached entry is kept before expiring. Defaults to one hour if not specified.
+/// </param>
+public class PokeApiCache(IMemoryCache cache, TimeSpan? cacheDuration = null) : IPokeApiCache
 {
+    private readonly TimeSpan _cacheDuration = ValidateCacheDuration(cacheDuration);
+
+    private static TimeSpan ValidateCacheDuration(TimeSpan? cacheDuration)
+    {
+        var validatedDuration = cacheDuration ?? TimeSpan.FromHours(1);
+
+        return validatedDuration <= TimeSpan.Zero 
+            ? throw new ArgumentOutOfRangeException(nameof(cacheDuration), "Cache duration must be greater than TimeSpan.Zero.")
+            : validatedDuration;
+    }
     /// <inheritdoc/>
     public Either<TResource, string> GetCachedResource<TResource>(string url)
     {
@@ -22,7 +35,7 @@ public class PokeApiCache(IMemoryCache cache) : IPokeApiCache
     }
     /// <inheritdoc/>
     public void SetCachedResource<TResource>(string url, TResource resource)
-        => cache.Set(url, resource, TimeSpan.FromHours(1));
+        => cache.Set(url, resource, _cacheDuration);
 
     /// <inheritdoc/>
     public void ClearCache()
