@@ -29,7 +29,7 @@ public record Item(
     string Name,
     int Cost,
     int? FlingPower,
-    NamedApiResource<ItemFlingEffect> FlingEffect,
+    NamedApiResource<ItemFlingEffect>? FlingEffect,
     IEnumerable<NamedApiResource<ItemAttribute>> Attributes,
     NamedApiResource<ItemCategory> Category,
     IEnumerable<VerboseEffect> EffectEntries,
@@ -38,7 +38,7 @@ public record Item(
     IEnumerable<NameEntry> Names,
     ItemSprites Sprites,
     IEnumerable<ItemHolderPokemon> HeldByPokemon,
-    ApiResource<EvolutionChain> BabyTriggerFor,
+    ApiResource<EvolutionChain>? BabyTriggerFor,
     IEnumerable<MachineVersionDetail> Machines);
 
 /// <summary>
@@ -46,7 +46,7 @@ public record Item(
 /// </summary>
 /// <param name="Default">The default depiction of this item.</param>
 public record ItemSprites(
-    string Default);
+    string? Default);
 
 /// <summary>
 /// Details about the Pokémon that holds this item.

@@ -26,10 +26,10 @@ namespace PokeApiSharp;
 public record Nature(
     int Id,
     string Name,
-    NamedApiResource<Stat> IncreasedStat,
-    NamedApiResource<Stat> DecreasedStat,
-    [property: JsonPropertyName("hates_flavor")]NamedApiResource<BerryFlavour> HatesFlavour,
-    [property: JsonPropertyName("likes_flavor")]NamedApiResource<BerryFlavour> LikesFlavour,
+    NamedApiResource<Stat>? IncreasedStat,
+    NamedApiResource<Stat>? DecreasedStat,
+    [property: JsonPropertyName("hates_flavor")]NamedApiResource<BerryFlavour>? HatesFlavour,
+    [property: JsonPropertyName("likes_flavor")]NamedApiResource<BerryFlavour>? LikesFlavour,
     IEnumerable<NatureStatChange> PokeathlonStatChanges,
     IEnumerable<MoveBattleStylePreference> MoveBattleStylePreferences,
     IEnumerable<NameEntry> Names

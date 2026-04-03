@@ -32,7 +32,7 @@ public record Type(
     IEnumerable<TypeRelationsPast> PastDamageRelations,
     IEnumerable<GenerationGameIndex> GameIndices,
     NamedApiResource<Generation> Generation,
-    NamedApiResource<MoveDamageClass> MoveDamageClass,
+    NamedApiResource<MoveDamageClass>? MoveDamageClass,
     IEnumerable<NameEntry> Names,
     IEnumerable<TypePokemon> Pokemon,
     IEnumerable<NamedApiResource<Move>> Moves,
