@@ -462,7 +462,7 @@ public class PokeApiClientTests
     }
 
     [Fact]
-    public async Task FetchAllResourcesAsync_Stops_WhenPageDeserializesToNull()
+    public async Task FetchAllResourcesAsync_Stops_WhenPageDeserialisesToNull()
     {
         var handler = new DelegatingHandler(req =>
         {
@@ -585,7 +585,8 @@ public class PokeApiClientTests
             Content = new StringContent(ResourceJson, Encoding.UTF8, "application/json")
         };
         var handler = new DelayingHandler(TimeSpan.FromSeconds(5), response);
-        using var httpClient = new HttpClient(handler) { BaseAddress = new Uri(BaseAddress) };
+        using var httpClient = new HttpClient(handler);
+        httpClient.BaseAddress = new Uri(BaseAddress);
         var sut = new PokeApiClient(httpClient);
 
         var resources = new[]
@@ -624,7 +625,8 @@ public class PokeApiClientTests
                 { Content = new StringContent(pokemonJson, Encoding.UTF8, "application/json") };
         });
 
-        using var httpClient = new HttpClient(handler) { BaseAddress = new Uri(BaseAddress) };
+        using var httpClient = new HttpClient(handler);
+        httpClient.BaseAddress = new Uri(BaseAddress);
         var sut = new PokeApiClient(httpClient);
 
         var results = (await sut.GetAsync<Pokemon>()).ToList();

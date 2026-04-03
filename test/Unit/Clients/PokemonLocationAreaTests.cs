@@ -2,7 +2,6 @@ using System.Net;
 using System.Text;
 using PokeApiSharp;
 using Unit.Utils;
-using Xunit;
 using DelegatingHandler = Unit.Utils.DelegatingHandler;
 
 namespace Unit.Clients;
@@ -122,7 +121,8 @@ public class PokemonLocationAreaTests
     public async Task GetPokemonLocationAreasAsync_Throws_OnNotFound()
     {
         var handler = new DelegatingHandler(_ => new HttpResponseMessage(HttpStatusCode.NotFound));
-        using var httpClient = new HttpClient(handler) { BaseAddress = new Uri("https://pokeapi.co/api/v2/") };
+        using var httpClient = new HttpClient(handler);
+        httpClient.BaseAddress = new Uri("https://pokeapi.co/api/v2/");
         var sut = new PokeApiClient(httpClient);
 
         await Assert.ThrowsAsync<HttpRequestException>(
@@ -137,7 +137,8 @@ public class PokemonLocationAreaTests
             Content = new StringContent("[]", Encoding.UTF8, "application/json")
         };
         var handler = new CaptureHandler(response);
-        using var httpClient = new HttpClient(handler) { BaseAddress = new Uri("https://pokeapi.co/api/v2/") };
+        using var httpClient = new HttpClient(handler);
+        httpClient.BaseAddress = new Uri("https://pokeapi.co/api/v2/");
         var sut = new PokeApiClient(httpClient);
 
         var result = await sut.GetPokemonLocationAreasAsync("pikachu");
@@ -153,7 +154,8 @@ public class PokemonLocationAreaTests
             Content = new StringContent(PokemonLocationAreaJson, Encoding.UTF8, "application/json")
         };
         var handler = new DelayingHandler(TimeSpan.FromSeconds(5), response);
-        using var httpClient = new HttpClient(handler) { BaseAddress = new Uri("https://pokeapi.co/api/v2/") };
+        using var httpClient = new HttpClient(handler);
+        httpClient.BaseAddress = new Uri("https://pokeapi.co/api/v2/");
         var sut = new PokeApiClient(httpClient);
 
         using var cts = new CancellationTokenSource();

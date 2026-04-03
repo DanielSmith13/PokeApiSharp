@@ -29,7 +29,7 @@ namespace Unit.Monads
             Assert.True(either.IsFailure);
 
             var result = either.Match(
-                success => 0,
+                _ => 0,
                 failure => failure.Length
             );
 
@@ -57,7 +57,7 @@ namespace Unit.Monads
             Assert.False(either.IsSuccess);
 
             Assert.Throws<InvalidOperationException>(() => either.Match(
-                success => 0,
+                _ => 0,
                 failure => failure?.Length
             ));
         }
