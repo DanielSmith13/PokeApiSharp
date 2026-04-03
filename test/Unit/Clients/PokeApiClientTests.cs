@@ -10,6 +10,9 @@ namespace Unit.Clients;
 
 public class PokeApiClientTests
 {
+    // A type with no [PokeApiResource] attribute, used to test the guard.
+    private record NoAttributeResource(int Id, string Name);
+
     private const string BaseAddress = "https://pokeapi.co/api/v2/";
     private const string ResourcePath = "pokemon";
     private static Uri GetExpectedUrl(int i) => new($"{BaseAddress}{ResourcePath}/{i}");
@@ -542,5 +545,94 @@ public class PokeApiClientTests
         cts.CancelAfter(TimeSpan.FromMilliseconds(50));
 
         await Assert.ThrowsAsync<TaskCanceledException>(async () => { await sut.GetAsync<Pokemon>(cts.Token); });
+    }
+
+    [Fact]
+    public async Task GetAsync_Throws_WhenTypeHasNoPokeApiResourceAttribute()
+    {
+        var sut = new PokeApiClient();
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => sut.GetAsync<NoAttributeResource>(1));
+    }
+
+    [Fact]
+    public async Task ListAsync_Throws_WhenTypeHasNoPokeApiResourceAttribute()
+    {
+        var sut = new PokeApiClient();
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => sut.ListAsync<NoAttributeResource>());
+    }
+
+    [Fact]
+    public void Dispose_IsIdempotent_WhenCalledTwice()
+    {
+        var sut = new PokeApiClient();
+
+        var exception = Record.Exception(() =>
+        {
+            sut.Dispose();
+            sut.Dispose();
+        });
+
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public async Task GetAsync_BatchNamedResources_HonorsCancellationToken()
+    {
+        var response = new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent(ResourceJson, Encoding.UTF8, "application/json")
+        };
+        var handler = new DelayingHandler(TimeSpan.FromSeconds(5), response);
+        using var httpClient = new HttpClient(handler) { BaseAddress = new Uri(BaseAddress) };
+        var sut = new PokeApiClient(httpClient);
+
+        var resources = new[]
+        {
+            new NamedApiResource<Pokemon>("a", "pokemon/1"),
+            new NamedApiResource<Pokemon>("b", "pokemon/2"),
+        };
+
+        using var cts = new CancellationTokenSource();
+        cts.CancelAfter(TimeSpan.FromMilliseconds(50));
+
+        await Assert.ThrowsAsync<TaskCanceledException>(
+            async () => await sut.GetAsync(resources, cts.Token));
+    }
+
+    [Fact]
+    public async Task FetchAllResourcesAsync_LimitsConcurrency_ToMaxConcurrency()
+    {
+        const int resourceCount = 10;
+        var resources = Enumerable.Range(1, resourceCount)
+            .Select(i => new NamedApiResource<Pokemon>($"p{i}", $"https://pokeapi.co/api/v2/pokemon/{i}/"))
+            .ToList();
+        var listJson = JsonSerializer.Serialize(
+            new NamedApiResourceList<Pokemon>(resourceCount, null, null, resources));
+        const string pokemonJson = """{"id":1,"name":"test"}""";
+
+        var handler = new CountingHandler(async (req, ct) =>
+        {
+            var uri = req.RequestUri!.ToString();
+            if (uri.Contains("limit=100") && uri.Contains("offset=0"))
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                    { Content = new StringContent(listJson, Encoding.UTF8, "application/json") };
+
+            await Task.Delay(50, ct);
+            return new HttpResponseMessage(HttpStatusCode.OK)
+                { Content = new StringContent(pokemonJson, Encoding.UTF8, "application/json") };
+        });
+
+        using var httpClient = new HttpClient(handler) { BaseAddress = new Uri(BaseAddress) };
+        var sut = new PokeApiClient(httpClient);
+
+        var results = (await sut.GetAsync<Pokemon>()).ToList();
+
+        Assert.Equal(resourceCount, results.Count);
+        Assert.True(handler.MaxConcurrent <= 8,
+            $"Expected max 8 concurrent requests but observed {handler.MaxConcurrent}");
+        Assert.True(handler.MaxConcurrent > 1,
+            "Expected multiple concurrent requests but observed only 1");
     }
 }
