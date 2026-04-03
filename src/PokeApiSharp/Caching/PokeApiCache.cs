@@ -18,12 +18,9 @@ public class PokeApiCache(IMemoryCache cache, TimeSpan? cacheDuration = null) : 
     {
         var validatedDuration = cacheDuration ?? TimeSpan.FromHours(1);
 
-        if (validatedDuration <= TimeSpan.Zero)
-        {
-            throw new ArgumentOutOfRangeException(nameof(cacheDuration), "Cache duration must be greater than TimeSpan.Zero.");
-        }
-
-        return validatedDuration;
+        return validatedDuration <= TimeSpan.Zero 
+            ? throw new ArgumentOutOfRangeException(nameof(cacheDuration), "Cache duration must be greater than TimeSpan.Zero.")
+            : validatedDuration;
     }
     /// <inheritdoc/>
     public Either<TResource, string> GetCachedResource<TResource>(string url)
