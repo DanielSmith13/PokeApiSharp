@@ -39,7 +39,7 @@ public record PokemonForm(
     NamedApiResource<Pokemon> Pokemon,
     IEnumerable<PokemonFormType> Types,
     PokemonSprites Sprites,
-    NamedApiResource<VersionGroup> VersionGroup,
+    NamedApiResource<VersionGroup>? VersionGroup,
     IEnumerable<NameEntry> Names,
     IEnumerable<NameEntry> FormNames
 );

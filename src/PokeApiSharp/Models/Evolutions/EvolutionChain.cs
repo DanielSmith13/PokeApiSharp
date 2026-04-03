@@ -14,7 +14,7 @@ namespace PokeApiSharp;
 [PokeApiResource("evolution-chain")]
 public record EvolutionChain(
     int Id,
-    NamedApiResource<Item> BabyTriggerItem,
+    NamedApiResource<Item>? BabyTriggerItem,
     ChainLink Chain);
     
 /// <summary>
@@ -76,7 +76,7 @@ public record EvolutionDetail(
     NamedApiResource<PokemonSpecies>? PartySpecies,
     NamedApiResource<Type>? PartyType,
     int? RelativePhysicalStats,
-    string TimeOfDay,
+    string? TimeOfDay,
     NamedApiResource<PokemonSpecies>? TradeSpecies,
     bool TurnUpsideDown,
     int? RegionId,

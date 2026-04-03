@@ -37,14 +37,14 @@ namespace PokeApiSharp;
 public record Move(
     int Id,
     string Name,
-    int Accuracy,
+    int? Accuracy,
     int? EffectChance,
     int Pp,
     int Priority,
-    int Power,
-    ContestComboSets ContestCombos,
-    NamedApiResource<ContestType> ContestType,
-    ApiResource<ContestEffect> ContestEffect,
+    int? Power,
+    ContestComboSets? ContestCombos,
+    NamedApiResource<ContestType>? ContestType,
+    ApiResource<ContestEffect>? ContestEffect,
     NamedApiResource<MoveDamageClass> DamageClass,
     IEnumerable<VerboseEffect> EffectEntries,
     IEnumerable<AbilityEffectChange> EffectChanges,
@@ -56,7 +56,7 @@ public record Move(
     IEnumerable<NameEntry> Names,
     IEnumerable<PastMoveStatValues> PastValues,
     IEnumerable<MoveStatChange> StatChanges,
-    ApiResource<SuperContestEffect> SuperContestEffect,
+    ApiResource<SuperContestEffect>? SuperContestEffect,
     NamedApiResource<MoveTarget> Target,
     NamedApiResource<Type> Type);
 
@@ -140,7 +140,7 @@ public record MoveStatChange(
 public record PastMoveStatValues(
     int? Accuracy,
     int? EffectChance,
-    int Power,
+    int? Power,
     int? Pp,
     IEnumerable<VerboseEffect> EffectEntries,
     NamedApiResource<Type> Type,

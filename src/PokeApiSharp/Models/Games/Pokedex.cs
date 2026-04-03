@@ -25,7 +25,7 @@ public record Pokedex(
     IEnumerable<DescriptionEntry> Descriptions,
     IEnumerable<NameEntry> Names,
     IEnumerable<PokemonEntry> PokemonEntries,
-    NamedApiResource<Region> Region,
+    NamedApiResource<Region>? Region,
     IEnumerable<NamedApiResource<VersionGroup>> VersionGroups
 );
 
