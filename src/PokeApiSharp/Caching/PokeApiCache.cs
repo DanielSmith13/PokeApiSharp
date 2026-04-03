@@ -12,8 +12,19 @@ namespace PokeApiSharp.Caching;
 /// </param>
 public class PokeApiCache(IMemoryCache cache, TimeSpan? cacheDuration = null) : IPokeApiCache
 {
-    private readonly TimeSpan _cacheDuration = cacheDuration ?? TimeSpan.FromHours(1);
+    private readonly TimeSpan _cacheDuration = ValidateCacheDuration(cacheDuration);
 
+    private static TimeSpan ValidateCacheDuration(TimeSpan? cacheDuration)
+    {
+        var validatedDuration = cacheDuration ?? TimeSpan.FromHours(1);
+
+        if (validatedDuration <= TimeSpan.Zero)
+        {
+            throw new ArgumentOutOfRangeException(nameof(cacheDuration), "Cache duration must be greater than TimeSpan.Zero.");
+        }
+
+        return validatedDuration;
+    }
     /// <inheritdoc/>
     public Either<TResource, string> GetCachedResource<TResource>(string url)
     {
