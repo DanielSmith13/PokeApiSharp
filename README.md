@@ -4,7 +4,7 @@
 [![NuGet](https://img.shields.io/nuget/v/PokeApiSharp.svg)](https://www.nuget.org/packages/PokeApiSharp)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A lightweight, modern .NET 10 wrapper for the [PokéAPI](https://pokeapi.co/), providing a simple and efficient way to consume Pokémon data in your .NET applications.
+A lightweight, modern .NET wrapper for the [PokéAPI](https://pokeapi.co/), providing a simple and efficient way to consume Pokémon data in your .NET applications. Targets **net8.0**, **net9.0**, and **net10.0**.
 
 ## Features
 
@@ -101,13 +101,17 @@ public class PokemonService(IPokeApiClient pokeApiClient)
 
 ### Caching
 
-By default, `PokeApiClient` creates its own internal memory cache. If you want to share a cache or configure it:
+By default, `PokeApiClient` creates its own internal memory cache with a one-hour TTL. You can supply your own cache instance and/or customise the TTL:
 
 ```csharp
+// Custom cache instance
 IMemoryCache myCache = new MemoryCache(new MemoryCacheOptions());
 using var client = new PokeApiClient(cache: myCache);
 
-// Manual cache management
+// Custom TTL (e.g. 30 minutes)
+using var client = new PokeApiClient(cacheDuration: TimeSpan.FromMinutes(30));
+
+// Manual cache invalidation
 client.ClearCache();
 ```
 

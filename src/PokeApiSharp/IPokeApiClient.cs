@@ -9,7 +9,7 @@ namespace PokeApiSharp;
 /// in batches and clearing the internal cache. Implementations of this interface are responsible for
 /// handling HTTP requests, deserialization of responses, and error handling according to the defined behaviour.
 /// </summary>
-public interface IPokeApiClient
+public interface IPokeApiClient : IDisposable
 {
     /// <summary>
     /// Fetches a single API resource by name. The provided <paramref name="name"/> is
@@ -223,14 +223,23 @@ public interface IPokeApiClient
         CancellationToken cancellationToken = default);
     
     /// <summary>
-    /// Fetches all API resources of a given type. The method  performs HTTP GET to the PokeAPI with pagination parameters.
-    /// The method uses asynchronous iteration to fetch resources in batches, allowing for efficient handling of large result sets.
+    /// Fetches all API resources of a given type by following pagination automatically.
+    /// Issues an initial request with a page size of 100, then follows each <c>next</c> link
+    /// until all pages are exhausted. Individual resource failures are swallowed and returned
+    /// as <see langword="null"/> entries rather than aborting the entire operation.
     /// </summary>
-    /// <param name="cancellationToken"></param>
-    /// <typeparam name="TResource"></typeparam>
-    /// <returns>A task that represents the asynchronous operation. The task result contains a list of fetched resources.</returns>
+    /// <typeparam name="TResource">
+    /// The CLR type that represents the API resource to fetch. This type must be
+    /// decorated with the <see cref="PokeApiResource"/> attribute to identify the
+    /// corresponding API path (for example, <c>pokemon</c>, <c>item</c>, etc.).
+    /// </typeparam>
+    /// <param name="cancellationToken">A cancellation token to cancel the operation.</param>
+    /// <returns>
+    /// A task that resolves to an enumerable of all <typeparamref name="TResource"/> instances.
+    /// Entries for resources that failed to fetch are <see langword="null"/>.
+    /// </returns>
     /// <exception cref="InvalidOperationException">Thrown if <typeparamref name="TResource"/> is not declared as an API resource (missing <see cref="PokeApiResource"/> attribute).</exception>
-    /// <exception cref="System.Net.Http.HttpRequestException">Thrown when the HTTP request does not return a successful status code.</exception>
+    /// <exception cref="System.Net.Http.HttpRequestException">Thrown when a pagination list request does not return a successful status code.</exception>
     /// <example>
     /// Basic usage:
     /// <code>
@@ -245,30 +254,60 @@ public interface IPokeApiClient
     Task<IEnumerable<TResource?>> GetAsync<TResource>(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets a list of location areas where a Pokémon can be encountered.
+    /// Fetches a list of location areas where the specified Pokémon can be encountered.
+    /// The provided <paramref name="name"/> is trimmed of leading/trailing whitespace and
+    /// compared case-insensitively. Returns an empty enumerable if the Pokémon has no
+    /// encounter data rather than throwing.
     /// </summary>
-    /// <param name="name">The name of the Pokémon.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A list of location areas.</returns>
+    /// <param name="name">The name of the Pokémon. Leading/trailing whitespace is ignored; case is not significant.</param>
+    /// <param name="cancellationToken">A cancellation token to cancel the request.</param>
+    /// <returns>
+    /// A task that resolves to an enumerable of <see cref="PokemonLocationArea"/> instances,
+    /// or an empty enumerable if the Pokémon has no encounter data.
+    /// </returns>
+    /// <exception cref="System.Net.Http.HttpRequestException">Thrown when the HTTP request does not return a successful status code.</exception>
+    /// <example>
+    /// Basic usage:
+    /// <code>
+    /// var areas = await client.GetPokemonLocationAreasAsync("pikachu");
+    /// </code>
+    /// Example with a CancellationToken:
+    /// <code>
+    /// using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+    /// var areas = await client.GetPokemonLocationAreasAsync("pikachu", cts.Token);
+    /// </code>
+    /// </example>
     Task<IEnumerable<PokemonLocationArea>> GetPokemonLocationAreasAsync(string name,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets a list of location areas where a Pokémon can be encountered.
+    /// Fetches a list of location areas where the specified Pokémon can be encountered.
+    /// Returns an empty enumerable if the Pokémon has no encounter data rather than throwing.
     /// </summary>
     /// <param name="id">The identifier of the Pokémon.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A list of location areas.</returns>
+    /// <param name="cancellationToken">A cancellation token to cancel the request.</param>
+    /// <returns>
+    /// A task that resolves to an enumerable of <see cref="PokemonLocationArea"/> instances,
+    /// or an empty enumerable if the Pokémon has no encounter data.
+    /// </returns>
+    /// <exception cref="System.Net.Http.HttpRequestException">Thrown when the HTTP request does not return a successful status code.</exception>
+    /// <example>
+    /// Basic usage:
+    /// <code>
+    /// var areas = await client.GetPokemonLocationAreasAsync(25);
+    /// </code>
+    /// </example>
     Task<IEnumerable<PokemonLocationArea>> GetPokemonLocationAreasAsync(int id,
         CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Clears the internal cache.
+    /// Clears all entries from the internal cache, forcing subsequent requests to hit the API.
     /// </summary>
+    /// <remarks>
+    /// This method is a no-op if the underlying cache implementation is not a
+    /// <see cref="Microsoft.Extensions.Caching.Memory.MemoryCache"/>. When using a custom
+    /// <see cref="Microsoft.Extensions.Caching.Memory.IMemoryCache"/>, consider clearing it
+    /// directly via your own reference.
+    /// </remarks>
     void ClearCache();
-    
-    /// <summary>
-    /// Disposes the client and releases any resources associated with it.
-    /// </summary>
-    void Dispose();
 }
