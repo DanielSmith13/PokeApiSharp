@@ -43,12 +43,18 @@ jobs:
           VERSION="${{ github.ref_name }}"
           VERSION="${VERSION#v}"
         else
-          VERSION="0.0.1-preview.${{ github.run_number }}"
+          # Read package <Version> from the project file and append preview suffix
+          BASE_VERSION=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' src/PokeApiSharp/PokeApiSharp.csproj | head -n1)
+          if [ -n "$BASE_VERSION" ]; then
+            VERSION="${BASE_VERSION}--preview.${{ github.run_number }}"
+          else
+            VERSION="0.0.1-preview.${{ github.run_number }}"
+          fi
         fi
         dotnet pack src/PokeApiSharp/PokeApiSharp.csproj --configuration Release --no-build --output ./nupkg /p:PackageVersion=$VERSION /p:IncludeSymbols=true /p:SymbolPackageFormat=snupkg
 
     - name: Upload nupkg artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: nupkgs
         path: ./nupkg
