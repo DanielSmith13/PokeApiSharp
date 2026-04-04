@@ -14,6 +14,7 @@ namespace PokeApiSharp;
 /// <param name="IsBattleOnly">Whether this stat only exists within a battle.</param>
 /// <param name="AffectingMoves">A detail of moves which affect this stat positively or negatively.</param>
 /// <param name="AffectingNatures">A detail of natures which affect this stat positively or negatively.</param>
+/// <param name="AffectingItems">A list of items which affect this stat positively or negatively.</param>
 /// <param name="Characteristics">A list of characteristics that are set on a Pokémon when its highest base stat is this stat.</param>
 /// <param name="MoveDamageClass">The class of damage this stat is directly related to.</param>
 /// <param name="Names">The name of this resource listed in different languages.</param>

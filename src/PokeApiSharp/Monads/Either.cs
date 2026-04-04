@@ -31,10 +31,9 @@ public class Either<TSuccess, TFailure>
     public bool IsFailure => !IsSuccess;
 
     /// <summary>
-    /// Represents a monadic container that encapsulates a value of one of two possible types, typically used for scenarios involving success or failure.
+    /// Creates an <see cref="Either{TSuccess, TFailure}"/> representing a successful result.
     /// </summary>
-    /// <typeparam name="TSuccess">The type of the success value, if present.</typeparam>
-    /// <typeparam name="TFailure">The type of the failure value, if present.</typeparam>
+    /// <param name="success">The success value to store in the container.</param>
     public Either(TSuccess success)
     {
         _success = success;
@@ -43,11 +42,9 @@ public class Either<TSuccess, TFailure>
     }
 
     /// <summary>
-    /// Represents a monadic container that encapsulates a value of one of two possible types.
-    /// Often used for scenarios that involve either a success result or a failure result.
+    /// Creates an <see cref="Either{TSuccess, TFailure}"/> representing a failure result.
     /// </summary>
-    /// <typeparam name="TSuccess">The type representing a successful result.</typeparam>
-    /// <typeparam name="TFailure">The type representing a failure result.</typeparam>
+    /// <param name="failure">The failure value to store in the container.</param>
     public Either(TFailure failure)
     {
         _failure = failure;

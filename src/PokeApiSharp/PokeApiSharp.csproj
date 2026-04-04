@@ -9,7 +9,7 @@
 
     <PropertyGroup>
         <PackageId>PokeApiSharp</PackageId>
-        <Version>1.0.0</Version>
+        <Version>1.0.1</Version>
         <Authors>Daniel Smith</Authors>
         <Company>DLRS Software</Company>
         <Description>Lightweight .NET client for the PokéAPI.</Description>
