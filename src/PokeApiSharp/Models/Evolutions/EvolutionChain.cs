@@ -53,8 +53,8 @@ public record ChainLink(
 /// <param name="TimeOfDay">The required time of day. Day or night.</param>
 /// <param name="TradeSpecies">The Pokémon species for which this one must be traded.</param>
 /// <param name="TurnUpsideDown">Whether the device needs to be turned upside-down as this Pokémon levels up.</param>
-/// <param name="RegionId">The required region in which this evolution can occur.</param>
-/// <param name="BaseFormId">The required form for which this evolution can occur.</param>
+/// <param name="Region">The required region in which this evolution can occur.</param>
+/// <param name="BaseForm">The required form for which this evolution can occur.</param>
 /// <param name="UsedMove">The move that must be used by the evolving Pokémon species during the evolution trigger event to evolve into this Pokémon species.</param>
 /// <param name="MinMoveCount">The minimum number of times a move must be used to evolve into this Pokémon species.</param>
 /// <param name="MinSteps">The minimum number of steps that must be taken to evolve into this Pokémon species.</param>
@@ -79,8 +79,8 @@ public record EvolutionDetail(
     string? TimeOfDay,
     NamedApiResource<PokemonSpecies>? TradeSpecies,
     bool TurnUpsideDown,
-    int? RegionId,
-    int? BaseFormId,
+    NamedApiResource<Region>? Region,
+    NamedApiResource<Pokemon>? BaseForm,
     NamedApiResource<Move>? UsedMove,
     int? MinMoveCount,
     int? MinSteps,
