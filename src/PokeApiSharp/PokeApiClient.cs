@@ -34,6 +34,9 @@ public class PokeApiClient : IPokeApiClient
 
     /// <summary>
     /// Provides methods to interact with the PokeAPI, a RESTful API for retrieving Pokémon data.
+    /// This constructor is obsolete and will be removed in a future major version. Prefer the
+    /// constructor that accepts an <see cref="IHttpClientFactory"/> so callers can use the
+    /// recommended HttpClientFactory-based lifetime management.
     /// </summary>
     /// <param name="httpClient">
     /// An optional HttpClient instance to use for API requests.
@@ -49,12 +52,56 @@ public class PokeApiClient : IPokeApiClient
     /// <param name="cacheDuration">
     /// How long each cached entry is kept before expiring. Defaults to one hour if not specified.
     /// </param>
-    public PokeApiClient(HttpClient? httpClient = null, IMemoryCache? cache = null, ILogger<PokeApiClient>? logger = null, TimeSpan? cacheDuration = null)
+    [Obsolete("This constructor is deprecated and will be removed in a future major version. Prefer the constructor that accepts an IHttpClientFactory for correct HttpClient lifetime management.")]
+    public PokeApiClient(
+        HttpClient? httpClient = null,
+        IMemoryCache? cache = null,
+        ILogger<PokeApiClient>? logger = null,
+        TimeSpan? cacheDuration = null)
     {
         httpClient ??= InitialiseHttpClient();
         if (httpClient.BaseAddress == null)
             httpClient.BaseAddress = new Uri(BaseAddress);
         _httpClient = httpClient;
+        _cache = InitialiseCache(cache, cacheDuration);
+        _logger = logger;
+    }
+
+    /// <summary>
+    /// Provides methods to interact with the PokeAPI, a RESTful API for retrieving Pokémon data.
+    /// Constructs a <see cref="PokeApiClient"/> using an <see cref="IHttpClientFactory"/>.
+    /// When provided this factory will be used to create the <see cref="HttpClient"/> and
+    /// the client will NOT be disposed by this class (the factory manages its lifetime).
+    /// </summary>
+    /// <param name="httpClientFactory">The factory used to create HttpClient instances.</param>
+    /// <param name="clientName">
+    /// Optional named client to create from the factory.
+    /// If not provided, a default name of "PokeApiSharp" will be used.
+    /// </param>
+    /// <param name="cache">
+    /// An optional IMemoryCache instance to use for caching API responses.
+    /// If not provided, a new instance will be created.
+    /// </param>
+    /// <param name="logger">
+    /// An optional ILogger instance for logging unmapped properties and other diagnostic information.
+    /// </param>
+    /// <param name="cacheDuration">
+    /// How long each cached entry is kept before expiring. Defaults to one hour if not specified.
+    /// </param>
+    public PokeApiClient(
+        IHttpClientFactory httpClientFactory,
+        string? clientName = null,
+        IMemoryCache? cache = null,
+        ILogger<PokeApiClient>? logger = null,
+        TimeSpan? cacheDuration = null)
+    {
+        ArgumentNullException.ThrowIfNull(httpClientFactory);
+
+        _httpClient = httpClientFactory.CreateClient(clientName ?? "PokeApiSharp");
+        _ownsHttpClient = false;
+        if (_httpClient.BaseAddress == null)
+            _httpClient.BaseAddress = new Uri(BaseAddress);
+
         _cache = InitialiseCache(cache, cacheDuration);
         _logger = logger;
     }
@@ -128,6 +175,7 @@ public class PokeApiClient : IPokeApiClient
             _httpClient.Dispose();
         if (_ownsCache)
             _cache.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     private async Task<T?> GetResourceAsync<T>(string url, CancellationToken cancellationToken)
