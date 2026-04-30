@@ -18,7 +18,7 @@ public class Either<TSuccess, TFailure>
     /// and false when it contains a failure value. It is primarily used to
     /// determine the state of the Either monadic container.
     /// </remarks>
-    public bool IsSuccess { get; private set; }
+    public bool IsSuccess { get; }
 
     /// <summary>
     /// Indicates whether the instance represents a failure outcome.
@@ -29,28 +29,6 @@ public class Either<TSuccess, TFailure>
     /// way to determine if the Either monadic container represents a failure state.
     /// </remarks>
     public bool IsFailure => !IsSuccess;
-
-    /// <summary>
-    /// Creates an <see cref="Either{TSuccess, TFailure}"/> representing a successful result.
-    /// </summary>
-    /// <param name="success">The success value to store in the container.</param>
-    public Either(TSuccess success)
-    {
-        _success = success;
-        _failure = default;
-        IsSuccess = true;
-    }
-
-    /// <summary>
-    /// Creates an <see cref="Either{TSuccess, TFailure}"/> representing a failure result.
-    /// </summary>
-    /// <param name="failure">The failure value to store in the container.</param>
-    public Either(TFailure failure)
-    {
-        _failure = failure;
-        _success = default;
-        IsSuccess = false;
-    }
 
     /// <summary>
     /// Applies one of two provided functions based on the state of the <see cref="Either{TSuccess, TFailure}"/> instance,
@@ -68,5 +46,33 @@ public class Either<TSuccess, TFailure>
         if (IsFailure && _failure != null)
             return onFailure(_failure);
         throw new InvalidOperationException("Either is in an invalid state.");
+    }
+    
+    /// <summary>
+    /// Defines an implicit conversion from a success value to an <see cref="Either{TSuccess, TFailure}"/> instance.
+    /// </summary>
+    /// <param name="success"></param>
+    /// <returns></returns>
+    public static implicit operator Either<TSuccess, TFailure>(TSuccess success) => new(success);
+    
+    /// <summary>
+    /// Defines an implicit conversion from a failure value to an <see cref="Either{TSuccess, TFailure}"/> instance.
+    /// </summary>
+    /// <param name="failure"></param>
+    /// <returns></returns>
+    public static implicit operator Either<TSuccess, TFailure>(TFailure failure) => new(failure);
+    
+    private Either(TSuccess success)
+    {
+        _success = success;
+        _failure = default;
+        IsSuccess = true;
+    }
+    
+    private Either(TFailure failure)
+    {
+        _failure = failure;
+        _success = default;
+        IsSuccess = false;
     }
 }
