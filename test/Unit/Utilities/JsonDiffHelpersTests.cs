@@ -22,8 +22,7 @@ public class JsonDiffHelpersTests
     private class WithExtensionData
     {
         public int Id { get; init; }
-        [JsonExtensionData]
-        public Dictionary<string, JsonElement>? Extra { get; init; }
+        [JsonExtensionData] public Dictionary<string, JsonElement>? Extra { get; init; }
     }
 
     [Fact]

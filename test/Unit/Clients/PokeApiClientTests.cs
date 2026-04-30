@@ -12,7 +12,7 @@ public class PokeApiClientTests
 {
     // A type with no [PokeApiResource] attribute, used to test the guard.
     private record NoAttributeResource(int Id, string Name);
-
+    
     private const string BaseAddress = "https://pokeapi.co/api/v2/";
     private const string ResourcePath = "pokemon";
     private static Uri GetExpectedUrl(int i) => new($"{BaseAddress}{ResourcePath}/{i}");
@@ -30,7 +30,7 @@ public class PokeApiClientTests
     public void Constructor_SetsBaseAddress_WhenNull()
     {
         var httpClient = new HttpClient();
-        var pokeApiClient = new PokeApiClient(httpClient);
+        var pokeApiClient = new PokeApiClient(new SimpleHttpClientFactory(httpClient));
 
         Assert.NotNull(pokeApiClient);
         Assert.NotNull(httpClient.BaseAddress);
@@ -42,7 +42,7 @@ public class PokeApiClientTests
     {
         var baseAddress = new Uri("https://pokeapi.co/api/v2/test");
         var httpClient = new HttpClient { BaseAddress = baseAddress };
-        var pokeApiClient = new PokeApiClient(httpClient);
+        var pokeApiClient = new PokeApiClient(new SimpleHttpClientFactory(httpClient));
 
         Assert.NotNull(pokeApiClient);
         Assert.NotNull(httpClient.BaseAddress);
@@ -62,7 +62,7 @@ public class PokeApiClientTests
         using var httpClient = new HttpClient(handler);
         httpClient.BaseAddress = new Uri("https://pokeapi.co/api/v2/");
 
-        var sut = new PokeApiClient(httpClient);
+        var sut = new PokeApiClient(new SimpleHttpClientFactory(httpClient));
 
         var result = await sut.GetAsync<Pokemon>(id);
 
@@ -90,7 +90,7 @@ public class PokeApiClientTests
         using var httpClient = new HttpClient(handler);
         httpClient.BaseAddress = new Uri("https://pokeapi.co/api/v2/");
 
-        var sut = new PokeApiClient(httpClient);
+        var sut = new PokeApiClient(new SimpleHttpClientFactory(httpClient));
 
         var result = await sut.GetAsync<Pokemon>(name);
 
@@ -119,7 +119,7 @@ public class PokeApiClientTests
         using var httpClient = new HttpClient(handler);
         httpClient.BaseAddress = new Uri("https://pokeapi.co/api/v2/");
 
-        var sut = new PokeApiClient(httpClient);
+        var sut = new PokeApiClient(new SimpleHttpClientFactory(httpClient));
 
         var result = await sut.ListAsync<Pokemon>(limit, offset);
 
@@ -149,7 +149,7 @@ public class PokeApiClientTests
         using var httpClient = new HttpClient(handler);
         httpClient.BaseAddress = new Uri("https://pokeapi.co/api/v2/");
 
-        var sut = new PokeApiClient(httpClient);
+        var sut = new PokeApiClient(new SimpleHttpClientFactory(httpClient));
 
         var first = await sut.GetAsync<Pokemon>(263);
 
@@ -182,7 +182,7 @@ public class PokeApiClientTests
         httpClient.BaseAddress = new Uri(BaseAddress);
 
         var memoryCache = new MemoryCache(new MemoryCacheOptions());
-        var sut = new PokeApiClient(httpClient, memoryCache);
+        var sut = new PokeApiClient(new SimpleHttpClientFactory(httpClient), null, memoryCache);
 
         var first = await sut.GetAsync<Pokemon>(263);
         Assert.NotNull(first);
@@ -202,7 +202,7 @@ public class PokeApiClientTests
         var handler = new TrackingHandler();
         var httpClient = new HttpClient(handler) { BaseAddress = new Uri(BaseAddress) };
 
-        var sut = new PokeApiClient(httpClient, new MemoryCache(new MemoryCacheOptions()));
+        var sut = new PokeApiClient(new SimpleHttpClientFactory(httpClient), null, new MemoryCache(new MemoryCacheOptions()));
 
         sut.Dispose();
 
@@ -217,7 +217,7 @@ public class PokeApiClientTests
     {
         var memoryCache = new MemoryCache(new MemoryCacheOptions());
         var httpClient = new HttpClient();
-        var sut = new PokeApiClient(httpClient, memoryCache);
+        var sut = new PokeApiClient(new SimpleHttpClientFactory(httpClient), null, memoryCache);
 
         sut.Dispose();
 
@@ -238,7 +238,7 @@ public class PokeApiClientTests
         using var httpClient = new HttpClient(handler);
         httpClient.BaseAddress = new Uri(BaseAddress);
 
-        var sut = new PokeApiClient(httpClient);
+        var sut = new PokeApiClient(new SimpleHttpClientFactory(httpClient));
 
         await Assert.ThrowsAsync<HttpRequestException>(async () => { await sut.GetAsync<Pokemon>(9999); });
 
@@ -261,7 +261,7 @@ public class PokeApiClientTests
         using var httpClient = new HttpClient(handler);
         httpClient.BaseAddress = new Uri(BaseAddress);
 
-        var sut = new PokeApiClient(httpClient);
+        var sut = new PokeApiClient(new SimpleHttpClientFactory(httpClient));
 
         var resources = new[]
         {
@@ -285,7 +285,7 @@ public class PokeApiClientTests
         using var httpClient = new HttpClient(handler);
         httpClient.BaseAddress = new Uri(BaseAddress);
 
-        var sut = new PokeApiClient(httpClient);
+        var sut = new PokeApiClient(new SimpleHttpClientFactory(httpClient));
 
         await Assert.ThrowsAsync<JsonException>(async () => { await sut.GetAsync<Pokemon>(1); });
     }
@@ -301,7 +301,7 @@ public class PokeApiClientTests
         using var httpClient = new HttpClient(handler);
         httpClient.BaseAddress = new Uri(BaseAddress);
 
-        var sut = new PokeApiClient(httpClient);
+        var sut = new PokeApiClient(new SimpleHttpClientFactory(httpClient));
 
         using var cts = new CancellationTokenSource();
         cts.CancelAfter(TimeSpan.FromMilliseconds(50));
@@ -319,7 +319,7 @@ public class PokeApiClientTests
         var handler = new CaptureHandler(response);
         using var httpClient = new HttpClient(handler);
         httpClient.BaseAddress = new Uri(BaseAddress);
-        var sut = new PokeApiClient(httpClient);
+        var sut = new PokeApiClient(new SimpleHttpClientFactory(httpClient));
 
         var apiResource = new ApiResource<Pokemon>("pokemon/263");
         var byApiResource = await sut.GetAsync(apiResource);
@@ -355,7 +355,7 @@ public class PokeApiClientTests
         using var httpClient = new HttpClient(handler);
         httpClient.BaseAddress = new Uri(BaseAddress);
 
-        var sut = new PokeApiClient(httpClient);
+        var sut = new PokeApiClient(new SimpleHttpClientFactory(httpClient));
 
         var results = (await sut.GetAsync([
             new NamedApiResource<Pokemon>("a", "pokemon/1"),
@@ -424,7 +424,7 @@ public class PokeApiClientTests
 
         using var httpClient = new HttpClient(handler);
         httpClient.BaseAddress = new Uri(BaseAddress);
-        var sut = new PokeApiClient(httpClient);
+        var sut = new PokeApiClient(new SimpleHttpClientFactory(httpClient));
 
         var all = await sut.GetAsync<Pokemon>();
 
@@ -454,7 +454,7 @@ public class PokeApiClientTests
         using var httpClient = new HttpClient(handler);
         httpClient.BaseAddress = new Uri(BaseAddress);
 
-        var sut = new PokeApiClient(httpClient);
+        var sut = new PokeApiClient(new SimpleHttpClientFactory(httpClient));
 
         var all = (await sut.GetAsync<Pokemon>()).ToList();
 
@@ -476,7 +476,7 @@ public class PokeApiClientTests
         using var httpClient = new HttpClient(handler);
         httpClient.BaseAddress = new Uri(BaseAddress);
 
-        var sut = new PokeApiClient(httpClient);
+        var sut = new PokeApiClient(new SimpleHttpClientFactory(httpClient));
 
         var all = (await sut.GetAsync<Pokemon>()).ToList();
 
@@ -516,7 +516,7 @@ public class PokeApiClientTests
         using var httpClient = new HttpClient(handler);
         httpClient.BaseAddress = new Uri(BaseAddress);
 
-        var sut = new PokeApiClient(httpClient);
+        var sut = new PokeApiClient(new SimpleHttpClientFactory(httpClient));
 
         var all = (await sut.GetAsync<Pokemon>()).ToList();
 
@@ -539,7 +539,7 @@ public class PokeApiClientTests
         using var httpClient = new HttpClient(handler);
         httpClient.BaseAddress = new Uri(BaseAddress);
 
-        var sut = new PokeApiClient(httpClient);
+        var sut = new PokeApiClient(new SimpleHttpClientFactory(httpClient));
 
         using var cts = new CancellationTokenSource();
         cts.CancelAfter(TimeSpan.FromMilliseconds(50));
@@ -550,7 +550,7 @@ public class PokeApiClientTests
     [Fact]
     public async Task GetAsync_Throws_WhenTypeHasNoPokeApiResourceAttribute()
     {
-        var sut = new PokeApiClient();
+        var sut = new PokeApiClient(new SimpleHttpClientFactory(new HttpClient()));
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => sut.GetAsync<NoAttributeResource>(1));
     }
@@ -558,7 +558,7 @@ public class PokeApiClientTests
     [Fact]
     public async Task ListAsync_Throws_WhenTypeHasNoPokeApiResourceAttribute()
     {
-        var sut = new PokeApiClient();
+        var sut = new PokeApiClient(new SimpleHttpClientFactory(new HttpClient()));
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => sut.ListAsync<NoAttributeResource>());
     }
@@ -566,7 +566,7 @@ public class PokeApiClientTests
     [Fact]
     public void Dispose_IsIdempotent_WhenCalledTwice()
     {
-        var sut = new PokeApiClient();
+        var sut = new PokeApiClient(new SimpleHttpClientFactory(new HttpClient()));
 
         var exception = Record.Exception(() =>
         {
@@ -587,7 +587,7 @@ public class PokeApiClientTests
         var handler = new DelayingHandler(TimeSpan.FromSeconds(5), response);
         using var httpClient = new HttpClient(handler);
         httpClient.BaseAddress = new Uri(BaseAddress);
-        var sut = new PokeApiClient(httpClient);
+        var sut = new PokeApiClient(new SimpleHttpClientFactory(httpClient));
 
         var resources = new[]
         {
@@ -627,7 +627,7 @@ public class PokeApiClientTests
 
         using var httpClient = new HttpClient(handler);
         httpClient.BaseAddress = new Uri(BaseAddress);
-        var sut = new PokeApiClient(httpClient);
+        var sut = new PokeApiClient(new SimpleHttpClientFactory(httpClient));
 
         var results = (await sut.GetAsync<Pokemon>()).ToList();
 
