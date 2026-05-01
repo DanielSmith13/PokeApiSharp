@@ -2,3 +2,10 @@ root = true
 
 [src/PokeApiSharp/Models/**/*.cs]
 resharper_check_namespace_highlighting = none
+
+[{src/PokeApiSharp/Models/Pokemon/Type.cs,src/PokeApiSharp/Models/Pokemon/PokemonSprites.cs}]
+resharper_inconsistent_naming_highlighting = none
+
+[test/**/*.cs]
+resharper_not_accessed_positional_property_local_highlighting = none
+resharper_unused_member_local_highlighting = none

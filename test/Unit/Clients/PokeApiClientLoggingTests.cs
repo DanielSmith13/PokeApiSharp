@@ -24,7 +24,7 @@ public class PokeApiClientLoggingTests
         using var httpClient = new HttpClient(handler);
         httpClient.BaseAddress = new Uri(BaseAddress);
         var logger = new MockLogger<PokeApiClient>();
-        var sut = new PokeApiClient(httpClient, logger: logger);
+        var sut = new PokeApiClient(new SimpleHttpClientFactory(httpClient), logger: logger);
         
         await sut.GetAsync<Pokemon>(1);
         
@@ -44,7 +44,7 @@ public class PokeApiClientLoggingTests
         using var httpClient = new HttpClient(handler);
         httpClient.BaseAddress = new Uri(BaseAddress);
         var logger = new MockLogger<PokeApiClient>();
-        var sut = new PokeApiClient(httpClient, logger: logger);
+        var sut = new PokeApiClient(new SimpleHttpClientFactory(httpClient), logger: logger);
         
         await sut.GetAsync<Pokemon>(1);
         
@@ -61,7 +61,7 @@ public class PokeApiClientLoggingTests
         var handler = new CaptureHandler(response);
         using var httpClient = new HttpClient(handler);
         httpClient.BaseAddress = new Uri(BaseAddress);
-        var sut = new PokeApiClient(httpClient, logger: null);
+        var sut = new PokeApiClient(new SimpleHttpClientFactory(httpClient), logger: null);
 
         var exception = await Record.ExceptionAsync(() => sut.GetAsync<Pokemon>(1));
         
@@ -79,7 +79,7 @@ public class PokeApiClientLoggingTests
         using var httpClient = new HttpClient(handler);
         httpClient.BaseAddress = new Uri(BaseAddress);
         var logger = new MockLogger<PokeApiClient>();
-        var sut = new PokeApiClient(httpClient, logger: logger);
+        var sut = new PokeApiClient(new SimpleHttpClientFactory(httpClient), logger: logger);
         
         await sut.ListAsync<Pokemon>();
         

@@ -20,7 +20,7 @@ public class PokeApiCacheTests
 
         // Assert
         Assert.True(result.IsSuccess);
-        Assert.Equal(expectedResource.Name, result.Match(r => r.Name, _ => null));
+        Assert.Equal(expectedResource.Name, result.Match(r => r.Name, _ => null!));
         Assert.Equal(expectedResource.Id, result.Match(r => r.Id, _ => 0));
     }
 

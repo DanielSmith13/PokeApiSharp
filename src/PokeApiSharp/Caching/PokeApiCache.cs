@@ -27,11 +27,11 @@ public class PokeApiCache(IMemoryCache cache, TimeSpan? cacheDuration = null) : 
     {
         if (!cache.TryGetValue(url, out TResource? resource))
         {
-            return new Either<TResource, string>("Resource not found in cache.");
+            return "Resource not found in cache.";
         }
         return resource != null
-            ? new Either<TResource, string>(resource)
-            : new Either<TResource, string>("Cached resource is null.");
+            ? resource
+            : "Cached resource is null.";
     }
     /// <inheritdoc/>
     public void SetCachedResource<TResource>(string url, TResource resource)

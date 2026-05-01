@@ -23,6 +23,22 @@ jobs:
       uses: actions/setup-dotnet@v5
       with:
         dotnet-version: 10.0.x
+        
+    - name: Setup .NET 9 (install targeting pack for net9.0 builds)
+      uses: actions/setup-dotnet@v5
+      with:
+        dotnet-version: 9.0.x
+
+    - name: Setup .NET 8 (install targeting pack for net8.0 builds)
+      uses: actions/setup-dotnet@v5
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Show installed .NET SDKs and runtimes
+      run: |
+        dotnet --info
+        dotnet --list-sdks
+        dotnet --list-runtimes
 
     - name: Restore dependencies
       run: dotnet restore
@@ -79,6 +95,22 @@ jobs:
       uses: actions/setup-dotnet@v5
       with:
         dotnet-version: 10.0.x
+
+    - name: Setup .NET 9 (ensure net9 targeting pack present for any packaging/build steps)
+      uses: actions/setup-dotnet@v5
+      with:
+        dotnet-version: 9.0.x
+
+    - name: Setup .NET 8 (ensure net8 targeting pack present for any packaging/build steps)
+      uses: actions/setup-dotnet@v5
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Show installed .NET SDKs and runtimes
+      run: |
+        dotnet --info
+        dotnet --list-sdks
+        dotnet --list-runtimes
 
     - name: Publish to NuGet
       if: github.ref_type == 'tag'

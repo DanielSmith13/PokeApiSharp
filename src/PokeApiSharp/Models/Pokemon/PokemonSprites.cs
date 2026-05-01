@@ -103,6 +103,7 @@ public record PokemonSpritesShowdown(
 /// </summary>
 public record PokemonSpritesVersions(
     [property: JsonPropertyName("generation-i")] PokemonSpritesGenerationI? GenerationI,
+    // ReSharper disable once InconsistentNaming
     [property: JsonPropertyName("generation-ii")] PokemonSpritesGenerationII? GenerationII,
     [property: JsonPropertyName("generation-iii")] PokemonSpritesGenerationIII? GenerationIII,
     [property: JsonPropertyName("generation-iv")] PokemonSpritesGenerationIV? GenerationIV,

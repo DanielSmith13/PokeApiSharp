@@ -52,7 +52,7 @@ public class PokemonLocationAreaTests
         using var httpClient = new HttpClient(handler);
         httpClient.BaseAddress = new Uri("https://pokeapi.co/api/v2/");
 
-        var sut = new PokeApiClient(httpClient);
+        var sut = new PokeApiClient(new SimpleHttpClientFactory(httpClient));
 
         var result = await sut.GetPokemonLocationAreasAsync("pikachu");
 
@@ -77,7 +77,7 @@ public class PokemonLocationAreaTests
        using var httpClient = new HttpClient(handler);
        httpClient.BaseAddress = new Uri("https://pokeapi.co/api/v2/");
  
-       var sut = new PokeApiClient(httpClient);
+       var sut = new PokeApiClient(new SimpleHttpClientFactory(httpClient));
  
        var result = await sut.GetPokemonLocationAreasAsync(" PiKaChU ");
  
@@ -103,7 +103,7 @@ public class PokemonLocationAreaTests
         using var httpClient = new HttpClient(handler);
         httpClient.BaseAddress = new Uri("https://pokeapi.co/api/v2/");
 
-        var sut = new PokeApiClient(httpClient);
+        var sut = new PokeApiClient(new SimpleHttpClientFactory(httpClient));
 
         var result = await sut.GetPokemonLocationAreasAsync(25);
 
@@ -123,7 +123,7 @@ public class PokemonLocationAreaTests
         var handler = new DelegatingHandler(_ => new HttpResponseMessage(HttpStatusCode.NotFound));
         using var httpClient = new HttpClient(handler);
         httpClient.BaseAddress = new Uri("https://pokeapi.co/api/v2/");
-        var sut = new PokeApiClient(httpClient);
+        var sut = new PokeApiClient(new SimpleHttpClientFactory(httpClient));
 
         await Assert.ThrowsAsync<HttpRequestException>(
             async () => await sut.GetPokemonLocationAreasAsync("unknownpokemon"));
@@ -139,7 +139,7 @@ public class PokemonLocationAreaTests
         var handler = new CaptureHandler(response);
         using var httpClient = new HttpClient(handler);
         httpClient.BaseAddress = new Uri("https://pokeapi.co/api/v2/");
-        var sut = new PokeApiClient(httpClient);
+        var sut = new PokeApiClient(new SimpleHttpClientFactory(httpClient));
 
         var result = await sut.GetPokemonLocationAreasAsync("pikachu");
 
@@ -156,7 +156,7 @@ public class PokemonLocationAreaTests
         var handler = new DelayingHandler(TimeSpan.FromSeconds(5), response);
         using var httpClient = new HttpClient(handler);
         httpClient.BaseAddress = new Uri("https://pokeapi.co/api/v2/");
-        var sut = new PokeApiClient(httpClient);
+        var sut = new PokeApiClient(new SimpleHttpClientFactory(httpClient));
 
         using var cts = new CancellationTokenSource();
         cts.CancelAfter(TimeSpan.FromMilliseconds(50));
