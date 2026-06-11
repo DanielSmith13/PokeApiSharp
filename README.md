@@ -31,10 +31,22 @@ dotnet add package PokeApiSharp
 You can start using the client immediately with default settings:
 
 ```csharp
+using System;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Caching.Memory;
 using PokeApiSharp;
 
-// Initialize the client
-using var client = new PokeApiClient();
+// Recommended: construct the client using an IHttpClientFactory (this example
+// uses a small DI container to create the factory and cache used by the client).
+var services = new ServiceCollection();
+services.AddMemoryCache();
+services.AddHttpClient("PokeApiSharp", c => c.BaseAddress = new Uri("https://pokeapi.co/api/v2/"));
+
+using var provider = services.BuildServiceProvider();
+var factory = provider.GetRequiredService<IHttpClientFactory>();
+var cache = provider.GetRequiredService<IMemoryCache>();
+
+using var client = new PokeApiClient(factory, "PokeApiSharp", cache);
 
 // Fetch a Pokémon by name
 var pikachu = await client.GetAsync<Pokemon>("pikachu");
@@ -76,24 +88,39 @@ foreach (var p in allPokemon)
 
 ### Dependency Injection
 
-Register `PokeApiClient` in your `Program.cs` or `Startup.cs` along with caching and logging services:
+Register an `IHttpClientFactory` and the named `HttpClient` that `PokeApiClient` will use. Then register an `IPokeApiClient` implementation that is constructed with the factory:
 
 ```csharp
+// Program.cs / Startup.cs
 builder.Services.AddMemoryCache();
-builder.Services.AddHttpClient<IPokeApiClient, PokeApiClient>(client =>
+
+// Configure a named HttpClient that the PokeApiClient will use
+builder.Services.AddHttpClient("PokeApiSharp", client =>
 {
     client.BaseAddress = new Uri("https://pokeapi.co/api/v2/");
 });
+
+// Register the IPokeApiClient and construct it using the IHttpClientFactory
+builder.Services.AddSingleton<IPokeApiClient>(sp =>
+{
+    var factory = sp.GetRequiredService<IHttpClientFactory>();
+    var cache = sp.GetRequiredService<IMemoryCache>();
+    var logger = sp.GetService<ILogger<PokeApiClient>>();
+    return new PokeApiClient(factory, "PokeApiSharp", cache, logger);
+});
 ```
 
-Then inject it into your services:
+Then inject `IPokeApiClient` into your services as usual:
 
 ```csharp
-public class PokemonService(IPokeApiClient pokeApiClient)
+public class PokemonService
 {
+    private readonly IPokeApiClient _pokeApiClient;
+    public PokemonService(IPokeApiClient pokeApiClient) => _pokeApiClient = pokeApiClient;
+
     public async Task<string?> GetPokemonTypeAsync(string name)
     {
-        var pokemon = await pokeApiClient.GetAsync<Pokemon>(name);
+        var pokemon = await _pokeApiClient.GetAsync<Pokemon>(name);
         return pokemon?.Types.FirstOrDefault()?.Type.Name;
     }
 }
